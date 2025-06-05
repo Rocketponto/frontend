@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import RelogioData from '../components/ponto/RelogioData'
-import BaterPonto from '../components/ponto/BaterPonto'
-import TabelaPonto from '../components/ponto/TabelaPonto'
+import RelogioData from '../components/Ponto/RelogioData'
+import BaterPonto from '../components/Ponto/BaterPonto'
+import TabelaPonto from '../components/Ponto/TabelaPonto'
 
 
 function Ponto() {

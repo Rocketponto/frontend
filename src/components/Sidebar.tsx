@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AiFillDollarCircle, AiFillRocket, AiOutlineClockCircle, AiOutlineLogout, AiOutlineRocket } from 'react-icons/ai'
+import { AiFillDollarCircle, AiFillRocket, AiOutlineClockCircle, AiOutlineCrown, AiOutlineLogout, AiOutlineRocket } from 'react-icons/ai'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 interface SidebarProps {
@@ -7,21 +7,51 @@ interface SidebarProps {
    toggleSidebar: () => void
 }
 
+interface User {
+   id: string
+   name: string
+   email: string
+   role: string
+   isActive: boolean
+   created_at: string
+   updated_at: string
+}
+
 function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
    const navigate = useNavigate()
    const location = useLocation()
+
+   const getUserData = (): User | null => {
+      try {
+         const userString = localStorage.getItem('user')
+         if (userString) {
+            return JSON.parse(userString) as User
+         }
+         return null
+      } catch (error) {
+         console.error('Erro ao parsear dados do usuário:', error)
+         return null
+      }
+   }
+
+   const [user, setUser] = useState<User | null>(getUserData())
 
    const getActiveItemFromPath = (path: string) => {
       if (path === '/' || path === '/ponto') {
          return 'ponto'
       } else if (path === '/rocketcoins') {
          return 'rocketcoins'
+      } else if (path === '/area-diretor' || path.startsWith('/area-diretor/')) {
+         return 'areaDiretor'
       }
-      return 'ponto' // fallback
+      return 'ponto'
    }
    const [activeItem, setActiveItem] = useState(() => getActiveItemFromPath(location.pathname))
 
    const handleLogout = () => {
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      localStorage.removeItem('rememberMe')
       navigate('/login')
    }
 
@@ -35,6 +65,8 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
          navigate('/ponto')
       } else if (itemName === 'rocketcoins') {
          navigate('/rocketcoins')
+      } else if (itemName === 'areaDiretor') {
+         navigate('/area-diretor')
       }
    }
 
@@ -65,8 +97,8 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                      <AiFillRocket className='text-2xl text-rocket-red-600' />
                   </div>
                   <div>
-                     <p className="text-sm font-medium">Usuário</p>
-                     <p className="text-xs text-gray-400">usuario@email.com</p>
+                     <p className="text-sm font-medium">{user?.name}</p>
+                     <p className="text-xs text-gray-400">{user?.email}</p>
                   </div>
                </div>
             </div>
@@ -75,7 +107,7 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
             <nav className="flex-1 px-4">
                <ul className="space-y-2">
                   <li>
-                     <a href="#"
+                     <a
                         className={`flex gap-1 items-center p-2 rounded transition-colors ${activeItem === 'ponto'
                            ? 'bg-rocket-red-600 text-white'
                            : 'hover:bg-rocket-red-600 hover:text-white'
@@ -86,7 +118,7 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                      </a>
                   </li>
                   <li>
-                     <a href="#"
+                     <a
                         className={`flex gap-1 items-center p-2 rounded transition-colors ${activeItem === 'rocketcoins'
                            ? 'bg-rocket-red-600 text-white'
                            : 'hover:bg-rocket-red-600 hover:text-white'
@@ -96,6 +128,21 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                         Rocketcoins
                      </a>
                   </li>
+                  {user?.role === 'DIRETOR' ? (
+                     <li>
+                        <a
+                           className={`flex gap-1 items-center p-2 rounded transition-colors ${activeItem === 'areaDiretor'
+                              ? 'bg-rocket-red-600 text-white'
+                              : 'hover:bg-rocket-red-600 hover:text-white'
+                              }`}
+                           onClick={() => handleItemClick('areaDiretor')}>
+                           <AiOutlineCrown />
+                           Área do Diretor
+                        </a>
+                     </li>
+                  ) : (
+                     ''
+                  )}
                </ul>
             </nav>
 

@@ -1,6 +1,6 @@
-import CardCoin from '../components/rocketcoin/CardCoin'
-import HistoricoTransacoes from '../components/rocketcoin/HistoricoTransacao'
-import RegistrarGasto from '../components/rocketcoin/RegistroGasto'
+import CardCoin from '../components/Rocketcoin/CardCoin'
+import HistoricoTransacoes from '../components/Rocketcoin/HistoricoTransacao'
+import RegistrarGasto from '../components/Rocketcoin/RegistroGasto'
 
 function Rocketcoins() {
    return (

@@ -4,6 +4,8 @@ import { Route, BrowserRouter as Router, Routes } from "react-router-dom"
 import PagePonto from "./pages/PagePonto"
 import Rocketcoins from "./pages/PageRocketcoins"
 import Login from "./components/Login/Login"
+import AreaDiretorSelect from "./pages/PageAreaDiretorSelect"
+import GerenciarMembros from "./pages/PageGerenciarMembros"
 
 function App() {
   const [sidebarOpen, setSiderbarOpen] = useState(true)
@@ -14,10 +16,8 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Rota de login */}
         <Route path="/login" element={<Login />} />
 
-        {/* Rotas protegidas */}
         <Route path="/*" element={
           <div className="min-h-screen bg-gray-rocket-700 flex">
             <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
@@ -27,6 +27,8 @@ function App() {
                 <Route path="/" element={<PagePonto />} />
                 <Route path="/ponto" element={<PagePonto />} />
                 <Route path="/rocketcoins" element={<Rocketcoins />} />
+                <Route path='/area-diretor' element={<AreaDiretorSelect />}/>
+                <Route path='/area-diretor/gerenciar-membros' element={<GerenciarMembros />}/>
               </Routes>
             </div>
           </div>

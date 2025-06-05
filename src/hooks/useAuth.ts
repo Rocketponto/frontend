@@ -17,6 +17,16 @@ interface LoginResponse {
   message?: string
 }
 
+interface Membro {
+   id: string
+   name: string
+   email: string
+   role: string
+   isActive: boolean
+   created_at: string
+   updated_at: string
+}
+
 export const authService = {
   login: async (data: LoginData): Promise<LoginResponse> => {
     try {
@@ -46,5 +56,14 @@ export const authService = {
   getCurrentUser: () => {
     const user = localStorage.getItem('user')
     return user ? JSON.parse(user) : null
-  }
+  },
+
+  buscarMembros: async (): Promise<{ success: boolean, data: Membro[] }> => {
+   try {
+      const response = await api.get('/auth/get-users')
+      return response.data
+   } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Erro ao buscar membros')
+   }
+},
 }

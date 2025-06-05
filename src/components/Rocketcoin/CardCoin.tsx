@@ -11,12 +11,10 @@ interface CardCoinProps {
 function CardCoin({ saldoAtual, ganhosMes, gastosMes, metaMensal = 500 }: CardCoinProps) {
   const [animatedSaldo, setAnimatedSaldo] = useState(0)
 
-  // Calcular estatísticas
   const saldoLiquidoMes = ganhosMes - gastosMes
   const percentualMeta = (ganhosMes / metaMensal) * 100
   const crescimentoPositivo = saldoLiquidoMes > 0
 
-  // Animação do saldo
   useEffect(() => {
     const timer = setTimeout(() => {
       setAnimatedSaldo(saldoAtual)
@@ -24,14 +22,12 @@ function CardCoin({ saldoAtual, ganhosMes, gastosMes, metaMensal = 500 }: CardCo
     return () => clearTimeout(timer)
   }, [saldoAtual])
 
-  // Determinar cor do trending
   const getTrendingColor = () => {
     if (percentualMeta >= 100) return 'text-green-500'
     if (percentualMeta >= 75) return 'text-yellow-500'
     return 'text-red-500'
   }
 
-  // Obter mês atual
   const getMesAtual = () => {
     const meses = [
       'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
