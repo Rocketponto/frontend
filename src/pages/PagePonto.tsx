@@ -1,0 +1,41 @@
+import { useState } from 'react'
+import RelogioData from '../components/ponto/RelogioData'
+import BaterPonto from '../components/ponto/BaterPonto'
+import TabelaPonto from '../components/ponto/TabelaPonto'
+
+
+function Ponto() {
+   const [pontoData, setPontoData] = useState({
+      entrada: null,
+      saidaAlmoco: null,
+      retornoAlmoco: null,
+      saida: null,
+      horasTrabalhadas: '00:00',
+      status: 'Não iniciado'
+   })
+
+   return (
+      <div className="p-6 space-y-6">
+         {/* Header da página */}
+         <div className="mb-8">
+            <h1 className="text-3xl font-bold text-white mb-2">
+               Controle de Ponto
+            </h1>
+            <p className="text-gray-300">
+               Gerencie seus horários de entrada e saída
+            </p>
+         </div>
+
+         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <RelogioData />
+            <BaterPonto />
+         </div>
+
+         <div className="w-full">
+           <TabelaPonto />
+         </div>
+      </div>
+   )
+}
+
+export default Ponto
