@@ -22,7 +22,7 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
    const [activeItem, setActiveItem] = useState(() => getActiveItemFromPath(location.pathname))
 
    const handleLogout = () => {
-      console.log('Saiu')
+      navigate('/login')
    }
 
    useEffect(() => {
@@ -48,10 +48,10 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
          )}
 
          <div className={`
-           fixed top-0 left-0 h-screen min-h-screen w-64 bg-gray-rocket-600 text-white transform transition-transform duration-300 z-50 flex flex-col
-           ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-           lg:translate-x-0 lg:relative lg:z-auto lg:sticky lg:top-0
-         `}>
+         fixed top-0 left-0 h-screen min-h-screen w-64 bg-gray-rocket-700 text-white transform transition-transform duration-300 z-50 flex flex-col shadow-lg shadow-black/20
+         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+         lg:translate-x-0 lg:relative lg:z-auto lg:sticky lg:top-0
+      `}>
             {/* Header */}
             <div className="flex items-center justify-center p-4 flex-shrink-0">
                <AiOutlineRocket className='text-3xl text-rocket-red-600' />

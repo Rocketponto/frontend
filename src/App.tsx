@@ -3,6 +3,7 @@ import Sidebar from "./components/Sidebar"
 import { Route, BrowserRouter as Router, Routes } from "react-router-dom"
 import PagePonto from "./pages/PagePonto"
 import Rocketcoins from "./pages/PageRocketcoins"
+import Login from "./components/Login/Login"
 
 function App() {
   const [sidebarOpen, setSiderbarOpen] = useState(true)
@@ -12,14 +13,16 @@ function App() {
   }
   return (
     <Router>
-      <div className="min-h-screen bg-gray-rocket-700 flex">
-        <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+      <Routes>
+        {/* Rota de login */}
+        <Route path="/login" element={<Login />} />
 
-        {/* Área do conteúdo principal */}
-        <div className={`flex-1 transition-all duration-300 ${sidebarOpen ? 'ml-0' : 'ml-0'
-          }`}>
-          <div className="w-full h-full flex justify-center">
-            <div className="w-full max-w-7xl">
+        {/* Rotas protegidas */}
+        <Route path="/*" element={
+          <div className="min-h-screen bg-gray-rocket-700 flex">
+            <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
+
+            <div className="flex-1 overflow-auto">
               <Routes>
                 <Route path="/" element={<PagePonto />} />
                 <Route path="/ponto" element={<PagePonto />} />
@@ -27,8 +30,8 @@ function App() {
               </Routes>
             </div>
           </div>
-        </div>
-      </div>
+        } />
+      </Routes>
     </Router>
   )
 }
