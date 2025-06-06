@@ -56,7 +56,7 @@ interface PontoMembro {
    user: Membro
    entryDateHour: string | null
    exitDateHour: string | null
-   pointRecordStatus: 'APPROVED' | 'PENDING' | 'REJECTED'
+   pointRecordStatus: 'APPROVED' | 'IN_PROGRESS' | 'REJECTED'
    description: string
    workingHours: {
       hours: number

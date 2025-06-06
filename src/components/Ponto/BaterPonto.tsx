@@ -21,21 +21,83 @@ function BaterPonto() {
   const [description, setDescription] = useState('')
   const [erro, setErro] = useState('')
 
+  // Função para salvar estado no localStorage
+  const salvarStatusLocal = (status: StatusProps) => {
+    const hoje = new Date().toISOString().split('T')[0] // YYYY-MM-DD
+    localStorage.setItem(`pontoStatus_${hoje}`, JSON.stringify(status))
+  }
+
+  // Função para carregar estado do localStorage
+  const carregarStatusLocal = (): StatusProps | null => {
+    const hoje = new Date().toISOString().split('T')[0]
+    const statusSalvo = localStorage.getItem(`pontoStatus_${hoje}`)
+
+    if (statusSalvo) {
+      return JSON.parse(statusSalvo)
+    }
+    return null
+  }
+
+  // Carregar estado quando componente monta
   useEffect(() => {
-    buscarRegistrosDia()
+    const statusSalvo = carregarStatusLocal()
+
+    if (statusSalvo) {
+      console.log('Estado recuperado do localStorage:', statusSalvo)
+      setPontoStatus(statusSalvo)
+    } else {
+      console.log('Nenhum estado salvo encontrado')
+      buscarRegistrosDia()
+    }
   }, [])
 
   const buscarRegistrosDia = async () => {
     try {
-      const response = await pontoService.buscarRegistrosDia()
-      if (response.data && response.data.length > 0) {
-        const ultimoRegistro = response.data[response.data.length - 1]
-        if (ultimoRegistro.type === 'entrada') {
-          setPontoStatus(prev => ({
-            ...prev,
-            entrada: new Date(ultimoRegistro.createdAt).toLocaleTimeString('pt-BR'),
-            tipo: 'saida'
-          }))
+      const response = await pontoService.buscarHistoricoPontos()
+
+      if (response.success && response.data && response.data.length > 0) {
+        const hoje = new Date().toISOString().split('T')[0]
+
+        // Filtrar registros de hoje
+        const registrosHoje = response.data.filter((registro: any) => {
+          const dataRegistro = new Date(registro.createdAt).toISOString().split('T')[0]
+          return dataRegistro === hoje
+        })
+
+        if (registrosHoje.length > 0) {
+          // Pegar o último registro
+          const ultimoRegistro = registrosHoje[registrosHoje.length - 1]
+
+          let novoStatus: StatusProps
+
+          if (ultimoRegistro.entryDateHour && ultimoRegistro.exitDateHour) {
+            // Tem entrada E saída - dia finalizado
+            novoStatus = {
+              entrada: new Date(ultimoRegistro.entryDateHour).toLocaleTimeString('pt-BR'),
+              saida: new Date(ultimoRegistro.exitDateHour).toLocaleTimeString('pt-BR'),
+              loading: false,
+              tipo: 'entrada' // Pode registrar nova entrada
+            }
+          } else if (ultimoRegistro.entryDateHour) {
+            // Tem apenas entrada - próximo é saída
+            novoStatus = {
+              entrada: new Date(ultimoRegistro.entryDateHour).toLocaleTimeString('pt-BR'),
+              saida: null,
+              loading: false,
+              tipo: 'saida'
+            }
+          } else {
+            // Estado padrão
+            novoStatus = {
+              entrada: null,
+              saida: null,
+              loading: false,
+              tipo: 'entrada'
+            }
+          }
+
+          setPontoStatus(novoStatus)
+          salvarStatusLocal(novoStatus)
         }
       }
     } catch (error) {
@@ -71,12 +133,17 @@ function BaterPonto() {
           second: '2-digit'
         })
 
-        setPontoStatus({
+        const novoStatus: StatusProps = {
           entrada: agora,
           saida: null,
           loading: false,
-          tipo: 'saida'
-        })
+          tipo: 'saida' // IMPORTANTE: Muda para saída
+        }
+
+        setPontoStatus(novoStatus)
+        salvarStatusLocal(novoStatus) // Salva no localStorage
+
+        console.log('Entrada registrada - próximo é saída')
       }
     } catch (error: any) {
       setErro(error.message)
@@ -105,21 +172,31 @@ function BaterPonto() {
           second: '2-digit'
         })
 
-        setPontoStatus({
+        const novoStatus: StatusProps = {
           entrada: pontoStatus.entrada,
           saida: agora,
           loading: false,
-          tipo: 'entrada'
-        })
+          tipo: 'entrada' // Volta para entrada após saída
+        }
 
+        setPontoStatus(novoStatus)
+        salvarStatusLocal(novoStatus)
+
+        console.log('Saída registrada - dia finalizado')
+
+        // Resetar após 5 segundos para mostrar o sucesso
         setTimeout(() => {
-          setPontoStatus({
+          const statusLimpo: StatusProps = {
             entrada: null,
             saida: null,
             loading: false,
             tipo: 'entrada'
-          })
-        }, 3000)
+          }
+          setPontoStatus(statusLimpo)
+          salvarStatusLocal(statusLimpo)
+        }, 5000)
+
+        setDescription('')
       }
     } catch (error: any) {
       setErro(error.message)
@@ -146,13 +223,13 @@ function BaterPonto() {
   }
 
   const getStatusColor = () => {
-    if (pontoStatus.saida) return 'bg-blue-500'
-    if (pontoStatus.entrada) return 'bg-green-500'
-    return 'bg-gray-500'
+    if (pontoStatus.saida) return 'bg-green-500' // Verde quando finalizado
+    if (pontoStatus.entrada) return 'bg-yellow-500' // Amarelo quando trabalhando
+    return 'bg-gray-500' // Cinza quando pendente
   }
 
   const getStatusText = () => {
-    if (pontoStatus.saida) return 'Finalizado'
+    if (pontoStatus.saida) return 'Dia Finalizado'
     if (pontoStatus.entrada) return 'Trabalhando'
     return 'Pendente'
   }
@@ -175,6 +252,12 @@ function BaterPonto() {
               </span>
             </div>
           </div>
+
+          {erro && (
+            <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+              {erro}
+            </div>
+          )}
 
           {pontoStatus.entrada && (
             <div className="mb-6 space-y-3">
@@ -204,7 +287,7 @@ function BaterPonto() {
             </div>
           )}
 
-          {pontoStatus.tipo === 'saida' && (
+          {pontoStatus.tipo === 'saida' && !pontoStatus.saida && (
             <div className="mb-4 p-3 bg-yellow-600/20 border border-yellow-500 rounded-lg">
               <p className="text-yellow-400 text-sm">
                 ⚠️ Para registrar a saída, você deve descrever suas atividades do dia
@@ -268,7 +351,7 @@ function BaterPonto() {
               <textarea
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Ex: Finalizei as tarefas do projeto X, organizei documentos, respondeu emails dos clientes..."
+                placeholder="Ex: Finalizei as tarefas do projeto X, organizei documentos, respondi emails dos clientes..."
                 rows={4}
                 className="w-full bg-gray-rocket-700 text-white rounded-lg px-3 py-2 border border-rocket-red-600 focus:border-rocket-red-700 focus:ring-2 focus:ring-rocket-red-600/20 focus:outline-none resize-none"
                 required

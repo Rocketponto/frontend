@@ -16,7 +16,7 @@ interface PontoMembro {
    }
    entryDateHour: string | null
    exitDateHour: string | null
-   pointRecordStatus: 'APPROVED' | 'PENDING' | 'REJECTED'
+   pointRecordStatus: 'APPROVED' | 'IN_PROGRESS' | 'REJECTED'
    description: string
    workingHours: {
       hours: number
@@ -68,7 +68,7 @@ function MembrosTable({
       switch (status) {
          case 'APPROVED':
             return 'bg-green-500/10 text-green-400 border-green-500/30'
-         case 'PENDING':
+         case 'IN_PROGRESS':
             return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/30'
          case 'REJECTED':
             return 'bg-red-500/10 text-red-400 border-red-500/30'
@@ -79,8 +79,8 @@ function MembrosTable({
 
    const getStatusText = (status: string) => {
       switch (status) {
-         case 'APPROVED': return 'Aprovado'
-         case 'PENDING': return 'Pendente'
+         case 'APPROVED': return 'Concluído'
+         case 'IN_PROGRESS': return 'Em andamento'
          case 'REJECTED': return 'Rejeitado'
          default: return 'Indefinido'
       }

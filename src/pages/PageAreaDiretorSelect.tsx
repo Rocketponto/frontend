@@ -1,10 +1,15 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AiOutlineBarChart, AiOutlineClockCircle, AiOutlineFileText, AiOutlineTeam } from 'react-icons/ai'
 import CardDiretor from '../components/AreaDiretor/CardAreaDiretor'
 import { useNavigate } from 'react-router-dom'
+import { authService } from '../hooks/useAuth'
+import { pontoService } from '../hooks/usePointRecord'
 
 function AreaDiretorSelect() {
    const [selectedOption, setSelectedOption] = useState<string | null>(null)
+   const [membersActive, setMembersActive] = useState(0)
+   const [Loading, setLoading] = useState(false)
+   const [pointsInProgress, setPointsProgress] = useState(0)
    const navigate = useNavigate()
 
    const handleCardClick = (option: string) => {
@@ -16,10 +21,42 @@ function AreaDiretorSelect() {
       }
    }
 
+   useEffect(() => {
+      const fetchMembers = async () => {
+         const response = await authService.buscarMembrosAtivo()
+         setMembersActive(response.data.length)
+      }
+      fetchMembers()
+   }, [])
+
+   useEffect(() => {
+      const fetchPointsInProgress = async () => {
+         try {
+            setLoading(true)
+            const response = await pontoService.buscarPontosMembros({})
+
+            if (response.success && response.data) {
+               const pontosEmProgresso = response.data.filter((ponto: any) => {
+                  return ponto.pointRecordStatus === 'IN_PROGRESS'
+               })
+
+               console.log('Pontos em progresso encontrados:', pontosEmProgresso)
+               setPointsProgress(pontosEmProgresso.length)
+            }
+         } catch (error) {
+            console.error('Erro ao buscar pontos:', error)
+         } finally {
+            setLoading(false)
+         }
+      }
+
+      fetchPointsInProgress()
+   }, [])
+
    const cards = [
       {
          id: 'membros',
-         title: 'Gerenciar Funcionários',
+         title: 'Gerenciar Membros',
          description: 'Visualize, edite e gerencie os dados dos funcionários. Controle permissões e monitore atividades.',
          icon: <AiOutlineTeam />,
          iconColor: 'text-rocket-red-600',
@@ -87,12 +124,12 @@ function AreaDiretorSelect() {
             </h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                <div className="bg-green-600/10 border border-green-500/30 rounded-lg p-4 text-center">
-                  <div className="text-green-400 text-2xl font-bold">24</div>
+                  <div className="text-green-400 text-2xl font-bold">{membersActive}</div>
                   <div className="text-green-300 text-sm">Funcionários Ativos</div>
                </div>
                <div className="bg-yellow-600/10 border border-yellow-500/30 rounded-lg p-4 text-center">
-                  <div className="text-yellow-400 text-2xl font-bold">3</div>
-                  <div className="text-yellow-300 text-sm">Pendências Hoje</div>
+                  <div className="text-yellow-400 text-2xl font-bold">{pointsInProgress}</div>
+                  <div className="text-yellow-300 text-sm">Pendências de Pontos</div>
                </div>
                <div className="bg-blue-600/10 border border-blue-500/30 rounded-lg p-4 text-center">
                   <div className="text-blue-400 text-2xl font-bold">95%</div>
