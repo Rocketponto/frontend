@@ -15,7 +15,7 @@ function Rocketcoins() {
          </div>
 
          <div className="w-full mb-6">
-            <CardCoin saldoAtual={0} ganhosMes={0} gastosMes={0} />
+            <CardCoin loadFromAPI={true} />
          </div>
 
          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

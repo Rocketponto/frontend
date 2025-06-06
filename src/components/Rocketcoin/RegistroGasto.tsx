@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { AiOutlinePlus, AiOutlineShoppingCart, AiOutlineDollarCircle, AiOutlineFileText, AiOutlineCheck } from 'react-icons/ai'
+import { walletService } from '../../hooks/useWallet'
 
 interface Gasto {
   id: string
@@ -42,6 +43,9 @@ function RegistrarGasto() {
     }))
   }
 
+  const [erro, setErro] = useState('')
+
+  // E atualize o handleSubmit:
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -50,22 +54,25 @@ function RegistrarGasto() {
     }
 
     setSalvando(true)
+    setErro('') // Limpar erro anterior
 
-    // Simular salvamento
-    setTimeout(() => {
-      const novoGasto: Gasto = {
-        id: Date.now().toString(),
-        titulo: formulario.titulo,
-        descricao: formulario.descricao,
-        valor: parseFloat(formulario.valor),
-        data: new Date().toLocaleDateString('pt-BR')
-      }
+    try {
+      await walletService.solicitarTransacao(
+        formulario.titulo,
+        formulario.descricao,
+        parseFloat(formulario.valor),
+        new Date().toISOString()
+      )
 
-      setGastos(prev => [novoGasto, ...prev])
+      // Sucesso
       setFormulario({ titulo: '', descricao: '', valor: '' })
       setMostrarFormulario(false)
+
+    } catch (error: any) {
+      setErro(error.message || 'Saldo insuficiente ou erro na transação')
+    } finally {
       setSalvando(false)
-    }, 1000)
+    }
   }
 
   const cancelarFormulario = () => {
@@ -174,7 +181,13 @@ function RegistrarGasto() {
               >
                 Cancelar
               </button>
+
             </div>
+            {erro && (
+              <div className="mb-4 p-3 text-center bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
+                {erro}
+              </div>
+            )}
           </form>
         </div>
       )}
