@@ -1,145 +1,161 @@
-import { useEffect, useState } from 'react'
-import { AiOutlinePlus, AiOutlineShoppingCart, AiOutlineDollarCircle, AiOutlineFileText, AiOutlineCheck } from 'react-icons/ai'
-import { walletService } from '../../hooks/useWallet'
-import { AuxiliaryFunctions } from '../../utils/AuxiliaryFunctions'
+import { useEffect, useState } from "react";
+import {
+  AiOutlinePlus,
+  AiOutlineShoppingCart,
+  AiOutlineDollarCircle,
+  AiOutlineFileText,
+  AiOutlineCheck,
+} from "react-icons/ai";
+import { walletService } from "../../hooks/useWallet";
+import { AuxiliaryFunctions } from "../../utils/AuxiliaryFunctions";
 
 interface Solicitacao {
-  id: number
-  walletId: number
-  type: string
-  amount: string
-  title: string
-  description: string
-  reference: string
-  processedBy: number | null
-  status: string
-  balanceBefore: string
-  balanceAfter: string
-  createdAt: string
-  updatedAt: string
-  processor: any | null
+  id: number;
+  walletId: number;
+  type: string;
+  amount: string;
+  title: string;
+  description: string;
+  reference: string;
+  processedBy: number | null;
+  status: string;
+  balanceBefore: string;
+  balanceAfter: string;
+  createdAt: string;
+  updatedAt: string;
+  processor: any | null;
 }
 
 function RegistrarGasto() {
+  const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
+  const [total, setTotal] = useState(0);
 
-  const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([])
-  const [total, setTotal] = useState(0)
-
-  const [mostrarFormulario, setMostrarFormulario] = useState(false)
+  const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [formulario, setFormulario] = useState({
-    titulo: '',
-    descricao: '',
-    valor: ''
-  })
-  const [salvando, setSalvando] = useState(false)
+    titulo: "",
+    descricao: "",
+    valor: "",
+  });
+  const [salvando, setSalvando] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
-    setFormulario(prev => ({
+    setFormulario((prev) => ({
       ...prev,
-      [field]: value
-    }))
-  }
+      [field]: value,
+    }));
+  };
 
-  const [erro, setErro] = useState('')
+  const [erro, setErro] = useState("");
 
   const [paginacao, setPaginacao] = useState({
     paginaAtual: 1,
     itensPorPagina: 5,
     totalItens: 0,
-    totalPaginas: 0
-  })
-  const [carregando, setCarregando] = useState(false)
+    totalPaginas: 0,
+  });
+  const [carregando, setCarregando] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!formulario.titulo || !formulario.descricao || !formulario.valor) {
-      return
+      return;
     }
 
-    setSalvando(true)
-    setErro('')
+    setSalvando(true);
+    setErro("");
 
     try {
       await walletService.solicitarTransacao(
         formulario.titulo,
         formulario.descricao,
-        parseFloat(formulario.valor),
+        parseFloat((Number(formulario.valor) / 100).toFixed(2)),
         new Date().toISOString()
-      )
+      );
 
-      setFormulario({ titulo: '', descricao: '', valor: '' })
-      setMostrarFormulario(false)
-      await fetchSolicitacoesPendentes(1, paginacao.itensPorPagina)
-
+      setFormulario({ titulo: "", descricao: "", valor: "" });
+      setMostrarFormulario(false);
+      await fetchSolicitacoesPendentes(1, paginacao.itensPorPagina);
     } catch (error: any) {
-      setErro(error.message || 'Saldo insuficiente ou erro na transação')
+      setErro(error.message || "Saldo insuficiente ou erro na transação");
     } finally {
-      setSalvando(false)
+      setSalvando(false);
     }
-  }
+  };
 
   const cancelarFormulario = () => {
-    setFormulario({ titulo: '', descricao: '', valor: '' })
-    setMostrarFormulario(false)
-  }
+    setFormulario({ titulo: "", descricao: "", valor: "" });
+    setMostrarFormulario(false);
+  };
 
-  const fetchSolicitacoesPendentes = async (pagina: number = 1, limite: number = 10) => {
+  const fetchSolicitacoesPendentes = async (
+    pagina: number = 1,
+    limite: number = 10
+  ) => {
     try {
-      setCarregando(true)
+      setCarregando(true);
 
       const response = await walletService.buscarMinhasSolicitaçõesPendentes({
         page: pagina,
-        limit: limite
-      })
+        limit: limite,
+      });
 
       if (response.success) {
-        const totalGastoSolicitacoes = response.summary
-        setTotal(totalGastoSolicitacoes)
+        const totalGastoSolicitacoes = response.summary;
+        setTotal(totalGastoSolicitacoes);
 
-        const solicitacoes = response.requests || []
-        setSolicitacoes(solicitacoes)
+        const solicitacoes = response.requests || [];
+        setSolicitacoes(solicitacoes);
 
         if (response.pagination) {
           setPaginacao({
             paginaAtual: response.pagination.currentPage || pagina,
             itensPorPagina: response.pagination.itemsPerPage || limite,
             totalItens: response.pagination.totalItems || 0,
-            totalPaginas: response.pagination.totalPages || 0
-          })
+            totalPaginas: response.pagination.totalPages || 0,
+          });
         }
       }
     } catch (error: any) {
-      setErro(error.message || 'Erro ao buscar solicitações de transação.')
-      setCarregando(false)
+      setErro(error.message || "Erro ao buscar solicitações de transação.");
+      setCarregando(false);
     } finally {
-      setCarregando(false)
+      setCarregando(false);
     }
-  }
+  };
 
   const proximaPagina = () => {
     if (paginacao.paginaAtual < paginacao.totalPaginas) {
-      const novaPagina = paginacao.paginaAtual + 1
-      fetchSolicitacoesPendentes(novaPagina, paginacao.itensPorPagina)
+      const novaPagina = paginacao.paginaAtual + 1;
+      fetchSolicitacoesPendentes(novaPagina, paginacao.itensPorPagina);
     }
-  }
+  };
 
   const paginaAnterior = () => {
     if (paginacao.paginaAtual > 1) {
-      const novaPagina = paginacao.paginaAtual - 1
-      fetchSolicitacoesPendentes(novaPagina, paginacao.itensPorPagina)
+      const novaPagina = paginacao.paginaAtual - 1;
+      fetchSolicitacoesPendentes(novaPagina, paginacao.itensPorPagina);
     }
-  }
+  };
+
+  const handleValorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let valor = e.target.value.replace(/\D/g, "");
+    if (valor.length > 9) valor = valor.slice(0, 9);
+    setFormulario((prev) => ({
+      ...prev,
+      valor,
+    }));
+  };
 
   const irParaPagina = (pagina: number) => {
     if (pagina >= 1 && pagina <= paginacao.totalPaginas) {
-      fetchSolicitacoesPendentes(pagina, paginacao.itensPorPagina)
+      fetchSolicitacoesPendentes(pagina, paginacao.itensPorPagina);
     }
-  }
+  };
 
   useEffect(() => {
-    fetchSolicitacoesPendentes(1, 5)
-  }, [])
+    fetchSolicitacoesPendentes(1, 5);
+  }, []);
 
   return (
     <div className="bg-transparent rounded-lg p-6 shadow-xl border border-zinc-950">
@@ -175,7 +191,7 @@ function RegistrarGasto() {
               <input
                 type="text"
                 value={formulario.titulo}
-                onChange={(e) => handleInputChange('titulo', e.target.value)}
+                onChange={(e) => handleInputChange("titulo", e.target.value)}
                 placeholder="Ex: Desconto Almoço"
                 className="w-full bg-gray-rocket-700 text-white rounded-lg px-3 py-2 border border-rocket-red-700 focus:border-rocket-red-700 focus:outline-none"
                 required
@@ -188,7 +204,7 @@ function RegistrarGasto() {
               </label>
               <textarea
                 value={formulario.descricao}
-                onChange={(e) => handleInputChange('descricao', e.target.value)}
+                onChange={(e) => handleInputChange("descricao", e.target.value)}
                 placeholder="Descreva o que você gastou..."
                 rows={3}
                 className="w-full bg-gray-rocket-700 text-white rounded-lg px-3 py-2 border border-rocket-red-600 focus:border-rocket-red-700 focus:outline-none resize-none"
@@ -201,12 +217,11 @@ function RegistrarGasto() {
                 Valor (RC$) *
               </label>
               <input
-                type="number"
-                step="0.01"
-                min="0"
-                value={formulario.valor}
-                onChange={(e) => handleInputChange('valor', e.target.value)}
-                placeholder="0.00"
+                type="text"
+                inputMode="numeric"
+                value={AuxiliaryFunctions.formatarMoeda(formulario.valor)}
+                onChange={handleValorChange}
+                placeholder="0,00"
                 className="w-full bg-gray-rocket-700 text-white rounded-lg px-3 py-2 border border-rocket-red-600 focus:border-rocket-red-700 focus:outline-none"
                 required
               />
@@ -238,7 +253,6 @@ function RegistrarGasto() {
               >
                 Cancelar
               </button>
-
             </div>
             {erro && (
               <div className="mb-4 p-3 text-center bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
@@ -252,7 +266,9 @@ function RegistrarGasto() {
       <div className="mb-6 bg-red-600/10 border border-red-500/30 rounded-lg p-4">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-red-400 text-sm font-medium">Total de RC$ nas Solicitações</div>
+            <div className="text-red-400 text-sm font-medium">
+              Total de RC$ nas Solicitações
+            </div>
             <div className="text-2xl font-bold text-white">
               RC$ {total.toFixed(2)}
             </div>
@@ -275,9 +291,9 @@ function RegistrarGasto() {
                   </h4>
                   <p className="text-gray-400 text-xs mb-1 leading-relaxed">
                     {solicitacao.description}
-                  </p >
+                  </p>
                   <span className="bg-yellow-600 p-1 text-white rounded-lg text-xs">
-                    {solicitacao.status && 'Pendente'}
+                    {solicitacao.status && "Pendente"}
                   </span>
                   <div className="text-gray-500 text-xs mt-1">
                     {AuxiliaryFunctions.formatarData(solicitacao.createdAt)}
@@ -309,8 +325,9 @@ function RegistrarGasto() {
         <div className="mt-6 pt-4 border-t border-gray-700">
           <div className="flex items-center justify-between">
             <div className="text-sm text-gray-400">
-              Página {paginacao.paginaAtual} de {paginacao.totalPaginas}
-              ({paginacao.totalItens} {paginacao.totalItens === 1 ? 'solicitação' : 'solicitações'})
+              Página {paginacao.paginaAtual} de {paginacao.totalPaginas}(
+              {paginacao.totalItens}{" "}
+              {paginacao.totalItens === 1 ? "solicitação" : "solicitações"})
             </div>
 
             <div className="flex items-center space-x-2">
@@ -323,43 +340,48 @@ function RegistrarGasto() {
               </button>
 
               <div className="flex space-x-1">
-                {Array.from({ length: Math.min(5, paginacao.totalPaginas) }, (_, i) => {
-                  let numeroPagina;
+                {Array.from(
+                  { length: Math.min(5, paginacao.totalPaginas) },
+                  (_, i) => {
+                    let numeroPagina;
 
-                  if (paginacao.totalPaginas <= 5) {
-                    numeroPagina = i + 1;
-                  } else {
-                    const meio = Math.floor(5 / 2);
-                    let inicio = Math.max(1, paginacao.paginaAtual - meio);
-                    let fim = Math.min(paginacao.totalPaginas, inicio + 4);
+                    if (paginacao.totalPaginas <= 5) {
+                      numeroPagina = i + 1;
+                    } else {
+                      const meio = Math.floor(5 / 2);
+                      let inicio = Math.max(1, paginacao.paginaAtual - meio);
+                      let fim = Math.min(paginacao.totalPaginas, inicio + 4);
 
-                    if (fim - inicio < 4) {
-                      inicio = Math.max(1, fim - 4);
+                      if (fim - inicio < 4) {
+                        inicio = Math.max(1, fim - 4);
+                      }
+
+                      numeroPagina = inicio + i;
                     }
 
-                    numeroPagina = inicio + i;
+                    return (
+                      <button
+                        key={numeroPagina}
+                        onClick={() => irParaPagina(numeroPagina)}
+                        disabled={carregando}
+                        className={`px-3 py-1 rounded text-sm transition-colors ${
+                          numeroPagina === paginacao.paginaAtual
+                            ? "bg-rocket-red-600 text-white"
+                            : "bg-gray-600 hover:bg-gray-700 text-white"
+                        }`}
+                      >
+                        {numeroPagina}
+                      </button>
+                    );
                   }
-
-                  return (
-                    <button
-                      key={numeroPagina}
-                      onClick={() => irParaPagina(numeroPagina)}
-                      disabled={carregando}
-                      className={`px-3 py-1 rounded text-sm transition-colors ${
-                        numeroPagina === paginacao.paginaAtual
-                          ? 'bg-rocket-red-600 text-white'
-                          : 'bg-gray-600 hover:bg-gray-700 text-white'
-                      }`}
-                    >
-                      {numeroPagina}
-                    </button>
-                  );
-                })}
+                )}
               </div>
 
               <button
                 onClick={proximaPagina}
-                disabled={paginacao.paginaAtual === paginacao.totalPaginas || carregando}
+                disabled={
+                  paginacao.paginaAtual === paginacao.totalPaginas || carregando
+                }
                 className="px-3 py-1 bg-gray-600 hover:bg-gray-700 disabled:bg-gray-800 disabled:text-gray-500 text-white rounded text-sm transition-colors"
               >
                 Próxima →
@@ -379,13 +401,16 @@ function RegistrarGasto() {
         <div className="mt-4 pt-4 border-t border-gray-700">
           <div className="text-center">
             <span className="text-sm text-gray-400">
-              {solicitacoes.length} {solicitacoes.length === 1 ? 'solicitação registrada' : 'solicitações registradas'}
+              {solicitacoes.length}{" "}
+              {solicitacoes.length === 1
+                ? "solicitação registrada"
+                : "solicitações registradas"}
             </span>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default RegistrarGasto
+export default RegistrarGasto;

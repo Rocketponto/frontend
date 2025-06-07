@@ -1,110 +1,126 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react";
 import {
   AiOutlinePlus,
   AiOutlineUser,
   AiOutlineSearch,
   AiOutlineLoading3Quarters,
   AiOutlineCheckCircle,
-  AiOutlineDollarCircle
-} from 'react-icons/ai'
-import { authService } from '../../hooks/useAuth'
-import { walletService } from '../../hooks/useWallet'
+  AiOutlineDollarCircle,
+} from "react-icons/ai";
+import { authService } from "../../hooks/useAuth";
+import { walletService } from "../../hooks/useWallet";
+import { AuxiliaryFunctions } from "../../utils/AuxiliaryFunctions";
 
 interface Usuario {
-  id: number
-  name: string
-  email: string
-  balance?: number
+  id: number;
+  name: string;
+  email: string;
+  balance?: number;
 }
 
 interface AdicionarRocketcoinsProps {
-  onUpdate: () => void
+  onUpdate: () => void;
 }
 
 function AdicionarRocketcoins({ onUpdate }: AdicionarRocketcoinsProps) {
-  const [usuarios, setUsuarios] = useState<Usuario[]>([])
-  const [usuarioSelecionado, setUsuarioSelecionado] = useState<Usuario | null>(null)
-  const [valor, setValor] = useState('')
-  const [titulo, setTitulo] = useState('')
-  const [descricao, setDescricao] = useState('')
-  const [carregando, setCarregando] = useState(false)
-  const [salvando, setSalvando] = useState(false)
-  const [busca, setBusca] = useState('')
-  const [erro, setErro] = useState('')
+  const [usuarios, setUsuarios] = useState<Usuario[]>([]);
+  const [usuarioSelecionado, setUsuarioSelecionado] = useState<Usuario | null>(
+    null
+  );
+  const [valor, setValor] = useState("");
+  const [titulo, setTitulo] = useState("");
+  const [descricao, setDescricao] = useState("");
+  const [carregando, setCarregando] = useState(false);
+  const [salvando, setSalvando] = useState(false);
+  const [busca, setBusca] = useState("");
+  const [erro, setErro] = useState("");
 
   useEffect(() => {
-    buscarUsuarios()
-  }, [])
+    buscarUsuarios();
+  }, []);
 
   const buscarUsuarios = async () => {
     try {
-      setCarregando(true)
-      const response = await authService.buscarMembrosAtivo()
+      setCarregando(true);
+      const response = await authService.buscarMembrosAtivo();
 
       if (response.data) {
-        setUsuarios(response.data.map((membro: any) => ({
-          id: Number(membro.id),
-          name: membro.name,
-          email: membro.email,
-          balance: membro.balance
-        })))
+        setUsuarios(
+          response.data.map((membro: any) => ({
+            id: Number(membro.id),
+            name: membro.name,
+            email: membro.email,
+            balance: membro.balance,
+          }))
+        );
       }
     } catch (error) {
-      console.error('Erro ao buscar usuários:', error)
-      setErro('Erro ao carregar usuários')
+      console.error("Erro ao buscar usuários:", error);
+      setErro("Erro ao carregar usuários");
     } finally {
-      setCarregando(false)
+      setCarregando(false);
     }
-  }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
     if (!usuarioSelecionado || !valor || !titulo || !descricao) {
-      setErro('Preencha todos os campos obrigatórios')
-      return
+      setErro("Preencha todos os campos obrigatórios");
+      return;
     }
 
     if (Number(valor) <= 0) {
-      setErro('O valor deve ser maior que zero')
-      return
+      setErro("O valor deve ser maior que zero");
+      return;
     }
 
     try {
-      setSalvando(true)
-      setErro('')
+      setSalvando(true);
+      setErro("");
 
       const response = await walletService.adicionarRocketcoins({
         userId: usuarioSelecionado.id,
-        amount: Number(valor),
+        amount: parseFloat((Number(valor) / 100).toFixed(2)),
         title: titulo,
-        description: descricao
-      })
+        description: descricao,
+      });
 
       if (response.success) {
-        setUsuarioSelecionado(null)
-        setValor('')
-        setTitulo('')
-        setDescricao('')
+        setUsuarioSelecionado(null);
+        setValor("");
+        setTitulo("");
+        setDescricao("");
 
-        onUpdate()
+        onUpdate();
 
-        alert(`RC$ ${Number(valor).toFixed(2)} adicionado com sucesso para ${usuarioSelecionado.name}!`)
+        alert(
+          `RC$ ${Number(valor).toFixed(2)} adicionado com sucesso para ${
+            usuarioSelecionado.name
+          }!`
+        );
       } else {
-        throw new Error(response.message || 'Erro ao adicionar rocketcoins')
+        throw new Error(response.message || "Erro ao adicionar rocketcoins");
       }
     } catch (error: any) {
-      console.error('Erro ao adicionar rocketcoins:', error)
-      setErro(error.message || 'Erro ao processar solicitação')
+      console.error("Erro ao adicionar rocketcoins:", error);
+      setErro(error.message || "Erro ao processar solicitação");
     } finally {
-      setSalvando(false)
+      setSalvando(false);
     }
-  }
+  };
 
-  const usuariosFiltrados = usuarios.filter(user =>
-    user.name.toLowerCase().includes(busca.toLowerCase()) ||
-    user.email.toLowerCase().includes(busca.toLowerCase())
-  )
+  const handleValorChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let valor = e.target.value.replace(/\D/g, "");
+    if (valor.length > 9) valor = valor.slice(0, 9);
+    setValor(valor);
+  };
+
+  const usuariosFiltrados = usuarios.filter(
+    (user) =>
+      user.name.toLowerCase().includes(busca.toLowerCase()) ||
+      user.email.toLowerCase().includes(busca.toLowerCase())
+  );
 
   return (
     <div className="space-y-6">
@@ -155,14 +171,16 @@ function AdicionarRocketcoins({ onUpdate }: AdicionarRocketcoinsProps) {
                   onClick={() => setUsuarioSelecionado(usuario)}
                   className={`w-full p-3 rounded-lg text-left transition-all border ${
                     usuarioSelecionado?.id === usuario.id
-                      ? 'bg-blue-600/20 border-blue-500/50 text-white'
-                      : 'bg-gray-700/50 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white'
+                      ? "bg-blue-600/20 border-blue-500/50 text-white"
+                      : "bg-gray-700/50 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
                   }`}
                 >
                   <div className="flex items-center justify-between">
                     <div>
                       <div className="font-medium">{usuario.name}</div>
-                      <div className="text-sm text-gray-400">{usuario.email}</div>
+                      <div className="text-sm text-gray-400">
+                        {usuario.email}
+                      </div>
                     </div>
                     {usuarioSelecionado?.id === usuario.id && (
                       <AiOutlineCheckCircle className="text-blue-400" />
@@ -172,7 +190,9 @@ function AdicionarRocketcoins({ onUpdate }: AdicionarRocketcoinsProps) {
               ))
             ) : (
               <div className="text-center py-8 text-gray-400">
-                {busca ? 'Nenhum usuário encontrado' : 'Nenhum usuário disponível'}
+                {busca
+                  ? "Nenhum usuário encontrado"
+                  : "Nenhum usuário disponível"}
               </div>
             )}
           </div>
@@ -197,15 +217,16 @@ function AdicionarRocketcoins({ onUpdate }: AdicionarRocketcoinsProps) {
               <label className="block text-gray-300 text-sm font-medium mb-2">
                 Usuário Selecionado
               </label>
-              <div className={`p-3 rounded-lg border ${
-                usuarioSelecionado
-                  ? 'bg-blue-600/10 border-blue-500/30 text-blue-400'
-                  : 'bg-gray-700 border-gray-600 text-gray-400'
-              }`}>
+              <div
+                className={`p-3 rounded-lg border ${
+                  usuarioSelecionado
+                    ? "bg-blue-600/10 border-blue-500/30 text-blue-400"
+                    : "bg-gray-700 border-gray-600 text-gray-400"
+                }`}
+              >
                 {usuarioSelecionado
                   ? `${usuarioSelecionado.name} (${usuarioSelecionado.email})`
-                  : 'Nenhum usuário selecionado'
-                }
+                  : "Nenhum usuário selecionado"}
               </div>
             </div>
 
@@ -215,11 +236,10 @@ function AdicionarRocketcoins({ onUpdate }: AdicionarRocketcoinsProps) {
                 Valor (RC$) *
               </label>
               <input
-                type="number"
-                step="0.01"
-                min="0.01"
-                value={valor}
-                onChange={(e) => setValor(e.target.value)}
+                type="text"
+                inputMode="numeric"
+                value={AuxiliaryFunctions.formatarMoeda(valor)}
+                onChange={handleValorChange}
                 placeholder="0.00"
                 className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 border border-gray-600 focus:border-green-500 focus:outline-none"
                 required
@@ -281,18 +301,26 @@ function AdicionarRocketcoins({ onUpdate }: AdicionarRocketcoinsProps) {
       {/* Preview da Transação */}
       {usuarioSelecionado && valor && titulo && (
         <div className="bg-green-600/10 border border-green-500/30 rounded-lg p-4">
-          <h4 className="text-green-400 font-medium mb-2">Preview da Transação</h4>
+          <h4 className="text-green-400 font-medium mb-2">
+            Preview da Transação
+          </h4>
           <div className="text-white">
-            <span className="font-bold">+RC$ {Number(valor || 0).toFixed(2)}</span>
-            {' será creditado para '}
+            <span className="font-bold">
+              +RC${" "}
+              {(Number(valor || 0) / 100).toLocaleString("pt-BR", {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2,
+              })}
+            </span>
+            {" será creditado para "}
             <span className="font-bold">{usuarioSelecionado.name}</span>
-            {' pelo motivo: '}
+            {" pelo motivo: "}
             <span className="italic">"{titulo}"</span>
           </div>
         </div>
       )}
     </div>
-  )
+  );
 }
 
-export default AdicionarRocketcoins
+export default AdicionarRocketcoins;

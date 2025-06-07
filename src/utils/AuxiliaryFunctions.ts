@@ -6,28 +6,35 @@ interface Paginacao {
 }
 
 export const AuxiliaryFunctions = {
-
   formatarData: (dataString: string) => {
-      const data = new Date(dataString)
+    const data = new Date(dataString);
 
-      const dataFormatada = data.toLocaleDateString('pt-BR', {
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric'
-      })
+    const dataFormatada = data.toLocaleDateString("pt-BR", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
 
-      const horaFormatada = data.toLocaleTimeString('pt-BR', {
-        hour: '2-digit',
-        minute: '2-digit'
-      })
+    const horaFormatada = data.toLocaleTimeString("pt-BR", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
 
-      return `${dataFormatada} às ${horaFormatada}`
-    },
+    return `${dataFormatada} às ${horaFormatada}`;
+  },
 
-    proximaPagina: (paginacao: Paginacao, functionFetch: any) => {
-      if (paginacao.paginaAtual < paginacao.totalPaginas) {
-        const novaPagina = paginacao.paginaAtual + 1
-        return functionFetch(novaPagina, paginacao.itensPorPagina)
-      }
+  proximaPagina: (paginacao: Paginacao, functionFetch: any) => {
+    if (paginacao.paginaAtual < paginacao.totalPaginas) {
+      const novaPagina = paginacao.paginaAtual + 1;
+      return functionFetch(novaPagina, paginacao.itensPorPagina);
     }
-}
+  },
+
+  formatarMoeda: (valor: string) => {
+    const numero = Number(valor.replace(/\D/g, ""));
+    return (numero / 100).toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  },
+};
