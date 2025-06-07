@@ -106,5 +106,63 @@ export const walletService = {
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Erro ao aprovar transação')
     }
+  },
+
+  buscarMinhasSolicitaçõesPendentes: async (params?: {page?: number, limit?: number}): Promise<{
+    summary: any
+    requests: any,
+    success: true,
+    pagination?: {
+      itemsPerPage: number
+      currentPage: number
+      totalPages: number
+      totalItems: number
+      limit: number
+    }
+  }> => {
+    try {
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+      const id = currentUser.id
+
+      const queryParams = new URLSearchParams()
+
+      if (params?.page) queryParams.append('page', params.page.toString())
+      if (params?.limit) queryParams.append('limit', params.limit.toString())
+
+
+      const response = await api.get(`/wallet/my-requests/${id}?${queryParams.toString()}`)
+      return response.data
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Erro ao buscar solicitações')
+    }
+  },
+
+  buscarHistoricoTransacoes: async (params?: {page?: number, limit?: number}): Promise<{
+    wallet: any
+    transactions: any,
+    success: true,
+    pagination?: {
+      itemsPerPage: number
+      currentPage: number
+      totalPages: number
+      totalItems: number
+      limit: number
+    }
+  }> => {
+    try {
+      const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+      const id = currentUser.id
+
+      const queryParams = new URLSearchParams()
+
+      if (params?.page) queryParams.append('page', params.page.toString())
+      if (params?.limit) queryParams.append('limit', params.limit.toString())
+
+
+      const response = await api.get(`/wallet/my-history-transactions/${id}?${queryParams.toString()}`)
+      return response.data
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || 'Erro ao buscar histórico')
+    }
   }
 }

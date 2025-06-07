@@ -94,7 +94,6 @@ function CardCoin({
       console.error('Erro ao buscar carteira:', error)
       setErro(error.message || 'Erro ao carregar dados da carteira')
 
-      // Dados padrão em caso de erro
       setWalletData({
         balance: 0,
         totalEarned: 0,
