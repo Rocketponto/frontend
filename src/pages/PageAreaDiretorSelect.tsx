@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { AiOutlineBarChart, AiOutlineClockCircle, AiOutlineFileText, AiOutlineTeam } from 'react-icons/ai'
+import { AiOutlineBarChart, AiOutlineClockCircle, AiOutlineDollar, AiOutlineFileText, AiOutlineTeam } from 'react-icons/ai'
 import CardDiretor from '../components/AreaDiretor/CardAreaDiretor'
 import { useNavigate } from 'react-router-dom'
 import { authService } from '../hooks/useAuth'
 import { pontoService } from '../hooks/usePointRecord'
+import { FaCoins } from 'react-icons/fa'
 
 function AreaDiretorSelect() {
    const [selectedOption, setSelectedOption] = useState<string | null>(null)
@@ -18,6 +19,8 @@ function AreaDiretorSelect() {
 
       if (option === 'membros') {
          navigate('/area-diretor/gerenciar-membros')
+      } else if (option === 'rocketcoins') {
+         navigate('/area-diretor/gerenciar-rocketcoins')
       }
    }
 
@@ -74,11 +77,11 @@ function AreaDiretorSelect() {
       },
       {
          id: 'rocketcoins',
-         title: 'Relatórios e Análises',
-         description: 'Acesse relatórios detalhados de ponto, produtividade e análises de desempenho da equipe.',
-         icon: <AiOutlineBarChart />,
-         iconColor: 'text-blue-600',
-         hoverColor: 'text-blue-400',
+         title: 'Gerenciar Rocketcoins',
+         description: 'Acesse relatórios detalhados das rocketcoins e gerencie a distribuição das moedas.',
+         icon: <FaCoins />,
+         iconColor: 'text-yellow-600',
+         hoverColor: 'text-yellow-400',
          features: [
             {
                icon: <AiOutlineBarChart />,
@@ -86,7 +89,7 @@ function AreaDiretorSelect() {
             },
             {
                icon: <AiOutlineFileText />,
-               text: 'Exportar'
+               text: 'Solicitações'
             }
          ]
       }

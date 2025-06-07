@@ -6,6 +6,7 @@ import Rocketcoins from "./pages/PageRocketcoins"
 import Login from "./components/Login/Login"
 import AreaDiretorSelect from "./pages/PageAreaDiretorSelect"
 import GerenciarMembros from "./pages/PageGerenciarMembros"
+import GerenciarRocketcoins from "./pages/PageGerenciarRocketcoins"
 
 function App() {
   const [sidebarOpen, setSiderbarOpen] = useState(true)
@@ -29,6 +30,7 @@ function App() {
                 <Route path="/rocketcoins" element={<Rocketcoins />} />
                 <Route path='/area-diretor' element={<AreaDiretorSelect />}/>
                 <Route path='/area-diretor/gerenciar-membros' element={<GerenciarMembros />}/>
+                <Route path='/area-diretor/gerenciar-rocketcoins' element={<GerenciarRocketcoins />}/>
               </Routes>
             </div>
           </div>
