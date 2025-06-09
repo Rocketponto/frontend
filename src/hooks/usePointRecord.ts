@@ -28,7 +28,7 @@ interface HistoricoPontoResponse {
       }
       entryDateHour: string | null
       exitDateHour: string | null
-      pointRecordStatus: 'APPROVED' | 'PENDING' | 'REJECTED'
+      pointRecordStatus: 'APPROVED' | 'PENDING' | 'REJECTED' | 'IN_PROGRESS'
       description: string
       workingHours: {
          hours: number
@@ -38,6 +38,19 @@ interface HistoricoPontoResponse {
       createdAt: string
       updatedAt: string
    }[]
+   pagination?: {
+      currentPage: number
+      totalPages: number
+      totalItems: number
+      itemsPerPage: number
+      hasNextPage: boolean
+      hasPrevPage: boolean
+   }
+   summary?: {
+      totalRecords: number
+      recordsInProgress: number
+      recordsApproved: number
+   }
 }
 
 interface Membro {
@@ -86,6 +99,11 @@ interface ResponsePaginada {
    }
 }
 
+interface FiltrosHistorico {
+   page?: number
+   limit?: number
+}
+
 export const pontoService = {
    registrarPonto: async (data: RegistrarPontoData): Promise<PontoResponse> => {
       try {
@@ -96,9 +114,21 @@ export const pontoService = {
       }
    },
 
-   buscarHistoricoPontos: async (): Promise<HistoricoPontoResponse> => {
+   buscarHistoricoPontos: async (filtros: FiltrosHistorico = {}): Promise<HistoricoPontoResponse> => {
       try {
-         const response = await api.get(`/pointRecord/my-records`)
+         const params = new URLSearchParams()
+
+         const user = localStorage.getItem('user')
+         const userData = user ? JSON.parse(user) : null
+         const userId = parseInt(userData.id)
+
+         if (filtros.page) params.append('page', filtros.page.toString())
+         if (filtros.limit) params.append('limit', filtros.limit.toString())
+
+         const queryString = params.toString()
+         const endpoint = `/pointRecord/my-records/${userId}${queryString ? `?${queryString}` : ''}`
+
+         const response = await api.get(endpoint)
          return response.data
       } catch (error: any) {
          throw new Error(error.response?.data?.message || 'Erro ao buscar registros')

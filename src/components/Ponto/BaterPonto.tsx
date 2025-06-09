@@ -38,15 +38,12 @@ function BaterPonto() {
     return null
   }
 
-  // Carregar estado quando componente monta
   useEffect(() => {
     const statusSalvo = carregarStatusLocal()
 
     if (statusSalvo) {
-      console.log('Estado recuperado do localStorage:', statusSalvo)
       setPontoStatus(statusSalvo)
     } else {
-      console.log('Nenhum estado salvo encontrado')
       buscarRegistrosDia()
     }
   }, [])
@@ -137,13 +134,12 @@ function BaterPonto() {
           entrada: agora,
           saida: null,
           loading: false,
-          tipo: 'saida' // IMPORTANTE: Muda para saída
+          tipo: 'saida'
         }
 
         setPontoStatus(novoStatus)
-        salvarStatusLocal(novoStatus) // Salva no localStorage
+        salvarStatusLocal(novoStatus)
 
-        console.log('Entrada registrada - próximo é saída')
       }
     } catch (error: any) {
       setErro(error.message)
@@ -176,15 +172,13 @@ function BaterPonto() {
           entrada: pontoStatus.entrada,
           saida: agora,
           loading: false,
-          tipo: 'entrada' // Volta para entrada após saída
+          tipo: 'entrada'
         }
 
         setPontoStatus(novoStatus)
         salvarStatusLocal(novoStatus)
 
-        console.log('Saída registrada - dia finalizado')
 
-        // Resetar após 5 segundos para mostrar o sucesso
         setTimeout(() => {
           const statusLimpo: StatusProps = {
             entrada: null,

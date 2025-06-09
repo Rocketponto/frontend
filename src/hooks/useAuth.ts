@@ -105,9 +105,26 @@ export const authService = {
     }
   },
 
-  buscarMembros: async (): Promise<{ success: boolean, data: Membro[] }> => {
+  buscarMembros: async (params?: {
+    page?: number
+    limit?: number
+  }): Promise<{
+    success: boolean
+    data: any[]
+    pagination?: {
+      currentPage: number
+      totalPages: number
+      totalItems: number
+      itemsPerPage: number
+    }
+  }> => {
     try {
-      const response = await api.get('/auth/get-all-users')
+      const queryParams = new URLSearchParams()
+
+      if (params?.page) queryParams.append('page', params.page.toString())
+      if (params?.limit) queryParams.append('limit', params.limit.toString())
+
+      const response = await api.get(`/auth/get-all-users${queryParams.toString() ? `?${queryParams.toString()}` : ''}`)
       return response.data
     } catch (error: any) {
       throw new Error(error.response?.data?.message || 'Erro ao buscar membros')

@@ -15,7 +15,6 @@ function AreaDiretorSelect() {
 
    const handleCardClick = (option: string) => {
       setSelectedOption(option)
-      console.log(`Selecionado: ${option}`)
 
       if (option === 'membros') {
          navigate('/area-diretor/gerenciar-membros')
@@ -43,7 +42,6 @@ function AreaDiretorSelect() {
                   return ponto.pointRecordStatus === 'IN_PROGRESS'
                })
 
-               console.log('Pontos em progresso encontrados:', pontosEmProgresso)
                setPointsProgress(pontosEmProgresso.length)
             }
          } catch (error) {

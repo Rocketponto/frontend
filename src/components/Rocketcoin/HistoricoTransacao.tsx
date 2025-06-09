@@ -42,7 +42,6 @@ function HistoricoTransacoes() {
       if (response.success) {
         const transacoes = response.transactions
         setTransacoes(transacoes)
-        console.log("aqui", response)
 
         const totalSaida = response.wallet.totalSpent
         setTotalSaida(Number(totalSaida))

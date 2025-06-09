@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { AiOutlineClose, AiOutlineUserDelete, AiOutlineSearch, AiOutlineLoading3Quarters, AiOutlineCheck, AiOutlineStop } from 'react-icons/ai'
 import { authService } from '../../hooks/useAuth'
 
@@ -8,7 +8,7 @@ interface Usuario {
    email: string
    role: 'MEMBRO' | 'DIRETOR'
    isActive: boolean
-   createdAt: string
+   created_at: string
 }
 
 interface ModalGerenciarStatusProps {
@@ -19,22 +19,42 @@ interface ModalGerenciarStatusProps {
 function ModalGerenciarStatus({ onClose, onSuccess }: ModalGerenciarStatusProps) {
    const [usuarios, setUsuarios] = useState<Usuario[]>([])
    const [loading, setLoading] = useState(true)
+   const [loadingMore, setLoadingMore] = useState(false)
    const [processando, setProcessando] = useState<string | null>(null)
    const [filtro, setFiltro] = useState('')
    const [filtroStatus, setFiltroStatus] = useState<'todos' | 'ativo' | 'inativo'>('todos')
    const [erro, setErro] = useState('')
 
+   const [paginacao, setPaginacao] = useState({
+      paginaAtual: 1,
+      totalPaginas: 1,
+      totalItens: 0,
+      itensPorPagina: 10,
+      hasMore: true
+   })
+
+   const scrollContainerRef = useRef<HTMLDivElement>(null)
+
    useEffect(() => {
-      buscarUsuarios()
+      buscarUsuarios(1, true)
    }, [])
 
-   const buscarUsuarios = async () => {
+   const buscarUsuarios = async (pagina: number = 1, reset: boolean = false) => {
       try {
-         setLoading(true)
-         // Simular API call
-         const response = await authService.buscarMembros()
+         if (reset) {
+            setLoading(true)
+            setUsuarios([])
+         } else {
+            setLoadingMore(true)
+         }
 
-         // Mock data
+         setErro('')
+
+         const response = await authService.buscarMembros({
+            page: pagina,
+            limit: paginacao.itensPorPagina
+         })
+
          if (response.success && response.data) {
             const usuariosFormatados = response.data.map((user: any) => ({
                id: user.id,
@@ -42,23 +62,59 @@ function ModalGerenciarStatus({ onClose, onSuccess }: ModalGerenciarStatusProps)
                email: user.email,
                role: user.role as 'MEMBRO' | 'DIRETOR',
                isActive: user.isActive ?? true,
-               createdAt: user.created_at
+               created_at: user.created_at
             }))
-            setUsuarios(usuariosFormatados)
+
+            if (reset) {
+               setUsuarios(usuariosFormatados)
+            } else {
+               setUsuarios(prev => [...prev, ...usuariosFormatados])
+            }
+
+            if (response.pagination) {
+               setPaginacao({
+                  paginaAtual: response.pagination.currentPage,
+                  totalPaginas: response.pagination.totalPages,
+                  totalItens: response.pagination.totalItems,
+                  itensPorPagina: response.pagination.itemsPerPage,
+                  hasMore: response.pagination.currentPage < response.pagination.totalPages
+               })
+            } else {
+               setPaginacao(prev => ({ ...prev, hasMore: false }))
+            }
          }
       } catch (error: any) {
          setErro(error.message || 'Erro ao buscar usuários')
+         setPaginacao(prev => ({ ...prev, hasMore: false }))
       } finally {
          setLoading(false)
+         setLoadingMore(false)
       }
    }
+
+   const handleScroll = useCallback(() => {
+      if (!scrollContainerRef.current || loadingMore || !paginacao.hasMore) return
+
+      const { scrollTop, scrollHeight, clientHeight } = scrollContainerRef.current
+
+      if (scrollHeight - scrollTop - clientHeight < 200) {
+         buscarUsuarios(paginacao.paginaAtual + 1, false)
+      }
+   }, [loadingMore, paginacao.hasMore, paginacao.paginaAtual])
+
+   useEffect(() => {
+      const container = scrollContainerRef.current
+      if (container) {
+         container.addEventListener('scroll', handleScroll)
+         return () => container.removeEventListener('scroll', handleScroll)
+      }
+   }, [handleScroll])
 
    const alterarStatus = async (userId: string, novoStatus: boolean) => {
       try {
          setProcessando(userId)
          setErro('')
 
-         // Chamar API
          await authService.atualizarStatusUser(Number(userId), novoStatus)
 
          setUsuarios(prev =>
@@ -92,8 +148,7 @@ function ModalGerenciarStatus({ onClose, onSuccess }: ModalGerenciarStatusProps)
 
    return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-         <div className="bg-gray-rocket-700 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            {/* Header */}
+         <div className="bg-gray-rocket-700 rounded-lg max-w-3xl w-full max-h-[90vh] overflow-hidden">
             <div className="flex items-center justify-between p-6 border-b border-gray-700">
                <h2 className="text-xl font-bold text-white flex items-center">
                   Gerenciar Status dos Membros
@@ -107,15 +162,16 @@ function ModalGerenciarStatus({ onClose, onSuccess }: ModalGerenciarStatusProps)
                </button>
             </div>
 
-            {/* Content */}
-            <div className="p-6">
+            <div
+               ref={scrollContainerRef}
+               className="p-6 overflow-y-auto max-h-[calc(90vh-120px)]"
+            >
                {erro && (
                   <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm mb-4">
                      {erro}
                   </div>
                )}
 
-               {/* Filtros */}
                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                   <div className="relative">
                      <AiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -139,7 +195,10 @@ function ModalGerenciarStatus({ onClose, onSuccess }: ModalGerenciarStatusProps)
                   </select>
                </div>
 
-               {/* Lista de usuários */}
+               <div className="mb-4 text-sm text-gray-400">
+                  Mostrando {usuarios.length} de {paginacao.totalItens} usuários
+               </div>
+
                {loading ? (
                   <div className="flex items-center justify-center py-12">
                      <AiOutlineLoading3Quarters className="text-2xl text-gray-400 animate-spin mr-3" />
@@ -155,7 +214,7 @@ function ModalGerenciarStatus({ onClose, onSuccess }: ModalGerenciarStatusProps)
                                     <div>
                                        <h3 className="text-white font-medium">{usuario.name}</h3>
                                        <p className="text-gray-400 text-sm">{usuario.email}</p>
-                                       <p className="text-gray-500 text-xs">Cadastrado em: {formatarData(usuario.createdAt)}</p>
+                                       <p className="text-gray-500 text-xs">Cadastrado em: {formatarData(usuario.created_at)}</p>
                                     </div>
                                  </div>
 
@@ -217,7 +276,14 @@ function ModalGerenciarStatus({ onClose, onSuccess }: ModalGerenciarStatusProps)
                         </div>
                      ))}
 
-                     {usuariosFiltrados.length === 0 && (
+                     {loadingMore && (
+                        <div className="flex items-center justify-center py-8">
+                           <AiOutlineLoading3Quarters className="text-xl text-gray-400 animate-spin mr-2" />
+                           <span className="text-gray-400 text-sm">Carregando mais usuários...</span>
+                        </div>
+                     )}
+
+                     {usuariosFiltrados.length === 0 && !loading && (
                         <div className="text-center py-8">
                            <AiOutlineUserDelete className="text-4xl text-gray-500 mx-auto mb-2" />
                            <p className="text-gray-400">Nenhum usuário encontrado</p>
@@ -226,8 +292,7 @@ function ModalGerenciarStatus({ onClose, onSuccess }: ModalGerenciarStatusProps)
                   </div>
                )}
 
-               {/* Footer */}
-               <div className="flex justify-end pt-6">
+               <div className="flex justify-end pt-6 mt-6 border-t border-gray-700">
                   <button
                      onClick={onClose}
                      className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg font-medium transition-colors"

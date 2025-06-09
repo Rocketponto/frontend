@@ -1,69 +1,29 @@
 import { useState, useEffect } from 'react'
-import { AiFillDollarCircle, AiOutlineArrowUp, AiOutlineArrowDown, AiOutlineWarning, AiOutlineRise, AiOutlineFall, AiOutlineLoading3Quarters } from 'react-icons/ai'
+import { AiFillDollarCircle, AiOutlineLoading3Quarters, AiOutlineReload, AiOutlineWallet } from 'react-icons/ai'
 import { walletService } from '../../hooks/useWallet'
 
 interface CardCoinProps {
-  // Props opcionais para override manual
   saldoAtual?: number
-  ganhosMes?: number
-  gastosMes?: number
-  metaMensal?: number
-  // Nova prop para forçar carregamento da API
   loadFromAPI?: boolean
 }
 
 function CardCoin({
   saldoAtual,
-  ganhosMes,
-  gastosMes,
-  metaMensal = 500,
   loadFromAPI = true
 }: CardCoinProps) {
   const [animatedSaldo, setAnimatedSaldo] = useState(0)
-  const [walletData, setWalletData] = useState({
-    balance: 0,
-    totalEarned: 0,
-    totalSpent: 0,
-    ganhosMes: 0,
-    gastosMes: 0
-  })
+  const [saldo, setSaldo] = useState(0)
   const [loading, setLoading] = useState(loadFromAPI)
   const [erro, setErro] = useState('')
+  const [ultimaAtualizacao, setUltimaAtualizacao] = useState<Date | null>(null)
 
-  // Calcular ganhos/gastos do mês atual das transações
-  const calcularMovimentacaoMes = (transactions: any[]) => {
-    const hoje = new Date()
-    const inicioMes = new Date(hoje.getFullYear(), hoje.getMonth(), 1)
-    const fimMes = new Date(hoje.getFullYear(), hoje.getMonth() + 1, 0)
-
-    let ganhosMesAtual = 0
-    let gastosMesAtual = 0
-
-    transactions.forEach(transaction => {
-      const dataTransacao = new Date(transaction.createdAt)
-
-      if (dataTransacao >= inicioMes && dataTransacao <= fimMes) {
-        const valor = parseFloat(transaction.amount)
-
-        if (transaction.type === 'EARNED') {
-          ganhosMesAtual += valor
-        } else if (transaction.type === 'SPENT') {
-          gastosMesAtual += valor
-        }
-      }
-    })
-
-    return { ganhosMesAtual, gastosMesAtual }
-  }
-
-  // Buscar dados da carteira quando loadFromAPI é true
   useEffect(() => {
     if (loadFromAPI) {
-      buscarDadosCarteira()
+      buscarSaldo()
     }
   }, [loadFromAPI])
 
-  const buscarDadosCarteira = async () => {
+  const buscarSaldo = async () => {
     try {
       setLoading(true)
       setErro('')
@@ -71,50 +31,25 @@ function CardCoin({
       const response = await walletService.buscarCarteira()
 
       if (response.success && response.wallet) {
-        const wallet = response.wallet
-
-        // Calcular movimentação do mês
-        const { ganhosMesAtual, gastosMesAtual } = calcularMovimentacaoMes(wallet.transactions)
-
-        const dadosCarteira = {
-          balance: parseFloat(wallet.balance),
-          totalEarned: parseFloat(wallet.totalEarned),
-          totalSpent: parseFloat(wallet.totalSpent),
-          ganhosMes: ganhosMesAtual,
-          gastosMes: gastosMesAtual
-        }
-
-        setWalletData(dadosCarteira)
-
-        console.log('Dados da carteira carregados:', dadosCarteira)
+        const novoSaldo = parseFloat(response.wallet.balance)
+        setSaldo(novoSaldo)
+        setUltimaAtualizacao(new Date())
       } else {
-        throw new Error(response.message || 'Erro ao carregar carteira')
+        throw new Error(response.message || 'Erro ao carregar saldo')
       }
     } catch (error: any) {
-      console.error('Erro ao buscar carteira:', error)
-      setErro(error.message || 'Erro ao carregar dados da carteira')
-
-      setWalletData({
-        balance: 0,
-        totalEarned: 0,
-        totalSpent: 0,
-        ganhosMes: 0,
-        gastosMes: 0
-      })
+      console.error('Erro ao buscar saldo:', error)
+      setErro('Erro ao carregar saldo')
+      setSaldo(0)
     } finally {
       setLoading(false)
     }
   }
 
-  // Usar dados da API ou props passadas
-  const saldoFinal = saldoAtual !== undefined ? saldoAtual : walletData.balance
-  const ganhosFinal = ganhosMes !== undefined ? ganhosMes : walletData.ganhosMes
-  const gastosFinal = gastosMes !== undefined ? gastosMes : walletData.gastosMes
+  // Usar saldo da API ou prop passada
+  const saldoFinal = saldoAtual !== undefined ? saldoAtual : saldo
 
-  const saldoLiquidoMes = ganhosFinal - gastosFinal
-  const percentualMeta = (ganhosFinal / metaMensal) * 100
-  const crescimentoPositivo = saldoLiquidoMes > 0
-
+  // Animação do saldo
   useEffect(() => {
     const timer = setTimeout(() => {
       setAnimatedSaldo(saldoFinal)
@@ -122,124 +57,115 @@ function CardCoin({
     return () => clearTimeout(timer)
   }, [saldoFinal])
 
-  const getTrendingColor = () => {
-    if (percentualMeta >= 100) return 'text-green-500'
-    if (percentualMeta >= 75) return 'text-yellow-500'
-    return 'text-red-500'
-  }
-
-  const getMesAtual = () => {
-    const meses = [
-      'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-      'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-    ]
-    return meses[new Date().getMonth()]
+  const formatarHora = (data: Date) => {
+    return data.toLocaleTimeString('pt-BR', {
+      hour: '2-digit',
+      minute: '2-digit'
+    })
   }
 
   if (loading) {
     return (
-      <div className="bg-gradient-to-r from-rocket-red-700 to-rocket-grey-600 rounded-lg p-6 shadow-xl border border-zinc-950">
-        <div className="flex items-center justify-center py-12">
-          <AiOutlineLoading3Quarters className="text-2xl text-white animate-spin mr-3" />
-          <span className="text-white">Carregando carteira...</span>
+      <div className="bg-gradient-to-br from-rocket-red-600 via-rocket-red-700 to-rocket-grey-700 rounded-xl p-8 shadow-xl border border-zinc-800">
+        <div className="flex items-center justify-center py-16">
+          <AiOutlineLoading3Quarters className="text-3xl text-white animate-spin mr-3" />
+          <span className="text-white text-lg">Carregando saldo...</span>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="bg-gradient-to-r from-rocket-red-700 to-rocket-grey-600 rounded-lg p-6 shadow-xl border border-zinc-950">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-xl font-semibold text-white flex items-center">
-          Minha Carteira RocketCoins
-          <AiFillDollarCircle className="ml-2 text-yellow-500 text-2xl" />
-        </h2>
-        <div className="text-sm text-gray-400">
-          {getMesAtual()} 2025
-        </div>
-      </div>
+    <div className="bg-gradient-to-br from-rocket-red-600 via-rocket-red-700 to-rocket-grey-700 rounded-xl p-8 shadow-2xl border border-zinc-800 relative overflow-hidden shadow-lg shadow-black/10">
+      <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-transparent"></div>
 
-      {erro && (
-        <div className="mb-4 p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-400 text-sm">
-          {erro}
+      <div className="relative z-10">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-3">
+            <div className="bg-gray-rocket-700 p-3 rounded-full">
+              <AiOutlineWallet className="text-yellow-400 text-2xl" />
+            </div>
+            <div>
+              <h2 className="text-xl font-semibold text-white">
+                Minha Carteira
+              </h2>
+              <p className="text-gray-300 text-sm">
+                RocketCoins disponíveis
+              </p>
+            </div>
+          </div>
+
           <button
-            onClick={buscarDadosCarteira}
-            className="ml-2 underline hover:no-underline"
+            onClick={buscarSaldo}
+            disabled={loading}
+            className="bg-white/10 hover:bg-white/20 disabled:bg-white/5 p-2 rounded-lg transition-all duration-200 backdrop-blur-sm"
+            title="Atualizar saldo"
           >
-            Tentar novamente
+            <AiOutlineReload className={`text-white text-lg ${loading ? 'animate-spin' : ''}`} />
           </button>
         </div>
-      )}
 
-      <div className="text-center mb-8">
-        <div className="text-gray-300 text-sm mb-2">Saldo Atual</div>
-        <div className="text-5xl font-bold text-white mb-2 font-mono">
-          RC$ {animatedSaldo.toFixed(2)}
-        </div>
-        <div className={`flex items-center justify-center space-x-1 ${
-          crescimentoPositivo ? 'text-green-400' : 'text-red-400'
-        }`}>
-          {crescimentoPositivo ? (
-            <AiOutlineRise className="text-lg" />
-          ) : (
-            <AiOutlineFall className="text-lg" />
-          )}
-          <span className="text-sm font-medium text-white">
-            RC$ {Math.abs(saldoLiquidoMes).toFixed(2)} este mês
-          </span>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        <div className="bg-green-900 border border-green-500/30 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-green-400 text-sm font-medium">Ganhos do Mês</div>
-              <div className="text-xl font-bold text-white">
-                RC$ {ganhosFinal.toFixed(2)}
-              </div>
+        {/* Erro */}
+        {erro && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-lg backdrop-blur-sm">
+            <div className="flex items-center justify-between">
+              <span className="text-red-300 text-sm">{erro}</span>
+              <button
+                onClick={buscarSaldo}
+                className="text-red-300 hover:text-red-200 text-sm underline"
+              >
+                Tentar novamente
+              </button>
             </div>
-            <AiOutlineArrowUp className="text-green-400 text-xl" />
+          </div>
+        )}
+
+        <div className="text-center mb-8">
+
+          <div className="bg-gray-rocket-700 rounded-2xl p-8">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center space-x-2">
+                <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                <span className="text-green-400 text-sm">Carteira ativa</span>
+              </div>
+
+              {ultimaAtualizacao && (
+                <div className="text-gray-400 text-xs">
+                  Atualizado às {formatarHora(ultimaAtualizacao)}
+                </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-center mb-4">
+              <AiFillDollarCircle className="text-yellow-400 text-4xl mr-2" />
+              <span className="text-gray-300 text-lg font-medium">RTC$</span>
+            </div>
+
+            <div className="text-6xl font-bold text-white mb-2 font-mono tracking-tight">
+              {animatedSaldo.toFixed(2)}
+            </div>
+
+            <div className="text-gray-300 text-sm">
+              Saldo atual disponível
+            </div>
           </div>
         </div>
 
-        <div className="bg-red-900 border border-red-500/30 rounded-lg p-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-red-400 text-sm font-medium">Gastos do Mês</div>
-              <div className="text-xl font-bold text-white">
-                RC$ {gastosFinal.toFixed(2)}
-              </div>
+        <div className="mt-6 p-4 bg-gray-rocket-700 border border-gray-rocket-600 rounded-lg">
+          <div className="flex items-start space-x-3">
+            <div className="bg-blue-500/20 p-1 rounded">
+              <AiFillDollarCircle className="text-yellow-400 text-sm" />
             </div>
-            <AiOutlineArrowDown className="text-red-400 text-xl" />
+            <div>
+              <p className="text-white text-sm font-medium mb-1">
+                Dica Rocket 💡
+              </p>
+              <p className="text-white text-xs leading-relaxed">
+                Use seus RocketCoins para solicitar gastos e recompensas. Ganhe mais cumprindo suas metas!
+              </p>
+            </div>
           </div>
         </div>
-
-        <div className={`bg-blue-900 border border-blue-500/30 rounded-lg p-4`}>
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="text-blue-400 text-sm font-medium">Meta Mensal</div>
-              <div className={`text-xl font-bold text-white`}>
-                {percentualMeta.toFixed(0)}%
-              </div>
-              <div className="text-xs text-gray-400">
-                RC$ {ganhosFinal.toFixed(0)} / RC$ {metaMensal}
-              </div>
-            </div>
-            <AiOutlineWarning className={`text-xl ${getTrendingColor()}`} />
-          </div>
-        </div>
-      </div>
-
-      {/* Botão para atualizar dados */}
-      <div className="flex justify-end">
-        <button
-          onClick={buscarDadosCarteira}
-          disabled={loading}
-          className="text-gray-400 hover:text-white text-sm transition-colors disabled:opacity-50"
-        >
-          {loading ? 'Atualizando...' : 'Atualizar dados'}
-        </button>
       </div>
     </div>
   )

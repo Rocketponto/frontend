@@ -18,16 +18,32 @@ function TabelaPonto() {
    const [loading, setLoading] = useState(true)
    const [erro, setErro] = useState('')
 
+   const [paginacao, setPaginacao] = useState({
+      paginaAtual: 1,
+      totalPaginas: 1,
+      totalItens: 0,
+      itensPorPagina: 10
+   })
+
+   const [resumo, setResumo] = useState({
+      totalRecords: 0,
+      recordsInProgress: 0,
+      recordsApproved: 0
+   })
+
    useEffect(() => {
       buscarHistorico()
-   }, [])
+   }, [paginacao.paginaAtual])
 
    const buscarHistorico = async () => {
       try {
          setLoading(true)
          setErro('')
 
-         const response = await pontoService.buscarHistoricoPontos()
+         const response = await pontoService.buscarHistoricoPontos({
+            page: paginacao.paginaAtual,
+            limit: paginacao.itensPorPagina
+         })
 
          if (response.success && response.data) {
             const registrosFormatados = response.data.map(ponto => {
@@ -41,7 +57,6 @@ function TabelaPonto() {
                   })
                   : null
 
-               // Formatar saída
                const saida = ponto.exitDateHour
                   ? new Date(ponto.exitDateHour).toLocaleTimeString('pt-BR', {
                      hour: '2-digit',
@@ -50,12 +65,10 @@ function TabelaPonto() {
                   })
                   : null
 
-               // Calcular total de horas
                const total = ponto.workingHours
                   ? `${String(ponto.workingHours.hours).padStart(2, '0')}:${String(ponto.workingHours.minutes).padStart(2, '0')}:00`
                   : '--:--:--'
 
-               // Determinar status
                let status: 'completo' | 'pendente' | 'ausente'
                if (ponto.pointRecordStatus === 'APPROVED' && entrada && saida) {
                   status = 'completo'
@@ -78,6 +91,19 @@ function TabelaPonto() {
             })
 
             setRegistros(registrosFormatados)
+
+            if (response.pagination) {
+               setPaginacao({
+                  paginaAtual: response.pagination.currentPage,
+                  totalPaginas: response.pagination.totalPages,
+                  totalItens: response.pagination.totalItems,
+                  itensPorPagina: response.pagination.itemsPerPage
+               })
+            }
+
+            if (response.summary) {
+               setResumo(response.summary)
+            }
          }
       } catch (error: any) {
          setErro(error.message)
@@ -124,6 +150,10 @@ function TabelaPonto() {
          default:
             return 'text-gray-500 bg-gray-500/10'
       }
+   }
+
+   const irParaPagina = (pagina: number) => {
+      setPaginacao(prev => ({ ...prev, paginaAtual: pagina }))
    }
 
    if (loading) {
@@ -254,7 +284,6 @@ function TabelaPonto() {
                   </table>
                </div>
 
-               {/* Resumo */}
                <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="bg-green-600/10 border border-green-500/30 rounded-lg p-4">
                      <div className="text-green-400 text-sm font-medium">Aprovados</div>
@@ -281,6 +310,31 @@ function TabelaPonto() {
                      </div>
                   </div>
                </div>
+
+               {/* Paginação */}
+               {paginacao.totalPaginas > 1 && (
+                  <div className="flex items-center justify-center space-x-2 mt-4">
+                     <button
+                        onClick={() => irParaPagina(paginacao.paginaAtual - 1)}
+                        disabled={paginacao.paginaAtual === 1}
+                        className="px-3 py-1 bg-rocket-red-600 hover:bg-rocket-red-700 disabled:bg-gray-800 text-white rounded"
+                     >
+                        ← Anterior
+                     </button>
+
+                     <span className="text-gray-400">
+                        Página {paginacao.paginaAtual} de {paginacao.totalPaginas}
+                     </span>
+
+                     <button
+                        onClick={() => irParaPagina(paginacao.paginaAtual + 1)}
+                        disabled={paginacao.paginaAtual === paginacao.totalPaginas}
+                        className="px-3 py-1 bg-rocket-red-600 hover:bg-rocket-red-700 disabled:bg-gray-800 text-white rounded"
+                     >
+                        Próxima →
+                     </button>
+                  </div>
+               )}
             </>
          )}
       </div>

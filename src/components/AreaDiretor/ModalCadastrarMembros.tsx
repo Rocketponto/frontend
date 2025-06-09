@@ -60,8 +60,6 @@ function ModalCadastrarMembro({ onClose, onSuccess }: ModalCadastrarMembroProps)
             role: formData.role
          })
 
-         console.log('Cadastrando membro:', formData)
-
          onSuccess?.()
          onClose()
       } catch (error: any) {

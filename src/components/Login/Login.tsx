@@ -40,7 +40,6 @@ function Login() {
             email: formData.email,
             password: formData.password
          })
-         console.log(response)
 
          if (response.token && response.user) {
             localStorage.setItem('token', response.token)

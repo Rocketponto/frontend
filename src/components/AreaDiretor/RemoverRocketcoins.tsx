@@ -75,7 +75,6 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
   const buscarSaldoUsuario = async (userId: number) => {
     try {
       const response = await walletService.buscarSaldoUsuario(userId);
-      console.log("Sladinho", response);
       if (response.success) {
         setSaldoUsuario(Number(response.wallet?.balance) || 0);
       }
@@ -102,7 +101,7 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
 
     if ( saldoUsuario !== null && Number(valor) > Math.round(saldoUsuario * 100)) {
       setErro(
-        `Valor excede o saldo disponível (RC$ ${saldoUsuario.toFixed(2)})`
+        `Valor excede o saldo disponível (RTC$ ${saldoUsuario.toFixed(2)})`
       );
       return;
     }
@@ -130,7 +129,7 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
         onUpdate();
 
         alert(
-          `RC$ ${valorNum.toFixed(2)} removido com sucesso de ${
+          `RTC$ ${valorNum.toFixed(2)} removido com sucesso de ${
             usuarioSelecionado.name
           }!`
         );
@@ -175,9 +174,9 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* Seleção de Usuário */}
-        <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+        <div className="bg-gray-rocket-700/50 rounded-lg p-6 border border-gray-700">
           <h3 className="text-lg font-medium text-white mb-4 flex items-center">
-            <AiOutlineUser className="mr-2 text-blue-400" />
+            <AiOutlineUser className="mr-2 text-red-400" />
             Selecionar Usuário
           </h3>
 
@@ -189,7 +188,7 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
               placeholder="Buscar por nome ou email..."
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
+              className="w-full pl-10 pr-4 py-2 bg-gray-rocket-700 text-white rounded-lg border border-gray-600 focus:border-rocket-red-600 focus:outline-none"
             />
           </div>
 
@@ -207,8 +206,8 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
                   onClick={() => setUsuarioSelecionado(usuario)}
                   className={`w-full p-3 rounded-lg text-left transition-all border ${
                     usuarioSelecionado?.id === usuario.id
-                      ? "bg-blue-600/20 border-blue-500/50 text-white"
-                      : "bg-gray-700/50 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
+                      ? "bg-rocket-red-600/20 border-rocket-red-600/50 text-white"
+                      : "bg-gray-rocket-700/50 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -219,7 +218,7 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
                       </div>
                     </div>
                     {usuarioSelecionado?.id === usuario.id && (
-                      <AiOutlineCheckCircle className="text-blue-400" />
+                      <AiOutlineCheckCircle className="text-green-400" />
                     )}
                   </div>
                 </button>
@@ -235,7 +234,7 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
         </div>
 
         {/* Formulário */}
-        <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+        <div className="bg-gray-rocket-700/50 rounded-lg p-6 border border-gray-700">
           <h3 className="text-lg font-medium text-white mb-4 flex items-center">
             <AiOutlineDollarCircle className="mr-2 text-red-400" />
             Dados da Transação
@@ -256,7 +255,7 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
               <div
                 className={`p-3 rounded-lg border ${
                   usuarioSelecionado
-                    ? "bg-blue-600/10 border-blue-500/30 text-blue-400"
+                    ? "bg-rocket-red-600/10 border-rocket-red-700/30 text-white"
                     : "bg-gray-700 border-gray-600 text-gray-400"
                 }`}
               >
@@ -267,7 +266,7 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
 
               {usuarioSelecionado && saldoUsuario !== null && (
                 <div className="mt-2 p-2 bg-yellow-600/10 border border-yellow-500/30 rounded text-yellow-400 text-sm">
-                  Saldo atual: RC$ {saldoUsuario.toFixed(2)}
+                  Saldo atual: RTC$ {saldoUsuario.toFixed(2)}
                 </div>
               )}
             </div>
@@ -275,7 +274,7 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
             {/* Valor */}
             <div>
               <label className="block text-gray-300 text-sm font-medium mb-2">
-                Valor (RC$) *
+                Valor (RTC$) *
               </label>
               <input
                 type="text"
@@ -287,7 +286,7 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
                 className={`w-full rounded-lg px-3 py-2 border focus:outline-none ${
                   valorExcedeSaldo
                     ? "bg-red-900/20 border-red-500 text-red-400 focus:border-red-400"
-                    : "bg-gray-700 border-gray-600 text-white focus:border-red-500"
+                    : "bg-gray-rocket-700 border-gray-600 text-white focus:border-red-500"
                 }`}
                 required
               />
@@ -309,7 +308,7 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
                 value={titulo}
                 onChange={(e) => setTitulo(e.target.value)}
                 placeholder="Ex: Desconto por atraso"
-                className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 border border-gray-600 focus:border-red-500 focus:outline-none"
+                className="w-full bg-gray-rocket-700 text-white rounded-lg px-3 py-2 border border-gray-600 focus:border-red-500 focus:outline-none"
                 required
               />
             </div>
@@ -324,7 +323,7 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
                 onChange={(e) => setDescricao(e.target.value)}
                 placeholder="Descreva o motivo da remoção de rocketcoins..."
                 rows={3}
-                className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 border border-gray-600 focus:border-red-500 focus:outline-none resize-none"
+                className="w-full bg-gray-rocket-700 text-white rounded-lg px-3 py-2 border border-gray-600 focus:border-red-500 focus:outline-none resize-none"
                 required
               />
             </div>
@@ -359,7 +358,7 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
           </h4>
           <div className="text-white">
             <span className="font-bold">
-              +RC${" "}
+              +RTC${" "}
               {(Number(valor || 0) / 100).toLocaleString("pt-BR", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,
@@ -372,7 +371,7 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
           </div>
           {saldoUsuario !== null && (
             <div className="text-gray-400 text-sm mt-1">
-              Saldo após transação: RC${" "}
+              Saldo após transação: RTC${" "}
               {(saldoUsuario - Number(valor || 0) / 100).toLocaleString(
                 "pt-BR",
                 {

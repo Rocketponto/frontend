@@ -56,7 +56,6 @@ function ModalGerenciarRoles({ onClose, onSuccess }: ModalGerenciarRolesProps) {
 
             await authService.atualizarRoleUser(Number(id), novoRole)
 
-            console.log(`Alterando role do usuário ${id} para ${novoRole}`)
 
             setUsuarios(prev =>
                prev.map(user =>

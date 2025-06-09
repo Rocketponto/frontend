@@ -298,7 +298,7 @@ function SolicitacoesPendentes({ onUpdate }: SolicitacoesPendentesProps) {
 
                     <div className="text-right">
                       <div className="text-red-400 font-bold text-xl font-mono">
-                        -RC$ {Number(solicitacao.amount).toFixed(2)}
+                        -RTC$ {Number(solicitacao.amount).toFixed(2)}
                       </div>
                       <div className="text-gray-400 text-sm">
                         Solicitado em{" "}
@@ -315,13 +315,13 @@ function SolicitacoesPendentes({ onUpdate }: SolicitacoesPendentesProps) {
                         <span>
                           Saldo atual da carteira:{" "}
                           <span className="text-green-700">
-                            RC$ {Number(solicitacao.wallet.balance).toFixed(2)}
+                            RTC$ {Number(solicitacao.wallet.balance).toFixed(2)}
                           </span>
                         </span>
                         <span>→</span>
                         {verificarSaldoSuficiente(solicitacao) ? (
                           <span className="text-yellow-400">
-                            Saldo após aprovação: RC${" "}
+                            Saldo após aprovação: RTC${" "}
                             {(
                               Number(solicitacao.wallet.balance) -
                               Number(solicitacao.amount)
@@ -329,7 +329,7 @@ function SolicitacoesPendentes({ onUpdate }: SolicitacoesPendentesProps) {
                           </span>
                         ) : (
                           <span className="text-red-400 font-medium">
-                            ⚠️ Saldo insuficiente (faltam RC${" "}
+                            ⚠️ Saldo insuficiente (faltam RTC${" "}
                             {(
                               Number(solicitacao.amount) -
                               Number(solicitacao.wallet.balance)
@@ -341,7 +341,7 @@ function SolicitacoesPendentes({ onUpdate }: SolicitacoesPendentesProps) {
                     ) : solicitacao.status === "APPROVED" ? (
                       <>
                         <span>
-                          Valor processado: RC${" "}
+                          Valor processado: RTC${" "}
                           {Number(solicitacao.amount).toFixed(2)}
                         </span>
                         <span>•</span>
@@ -350,14 +350,14 @@ function SolicitacoesPendentes({ onUpdate }: SolicitacoesPendentesProps) {
                         </span>
                         <span>•</span>
                         <span>
-                          Saldo atual: RC${" "}
+                          Saldo atual: RTC${" "}
                           {Number(solicitacao.wallet.balance).toFixed(2)}
                         </span>
                       </>
                     ) : solicitacao.status === "REJECTED" ? (
                       <>
                         <span>
-                          Valor solicitado: RC${" "}
+                          Valor solicitado: RTC${" "}
                           {Number(solicitacao.amount).toFixed(2)}
                         </span>
                         <span>•</span>
@@ -366,18 +366,18 @@ function SolicitacoesPendentes({ onUpdate }: SolicitacoesPendentesProps) {
                         </span>
                         <span>•</span>
                         <span>
-                          Saldo atual: RC${" "}
+                          Saldo atual: RTC${" "}
                           {Number(solicitacao.wallet.balance).toFixed(2)}
                         </span>
                       </>
                     ) : (
                       <>
                         <span>
-                          Valor: RC$ {Number(solicitacao.amount).toFixed(2)}
+                          Valor: RTC$ {Number(solicitacao.amount).toFixed(2)}
                         </span>
                         <span>•</span>
                         <span>
-                          Saldo atual: RC${" "}
+                          Saldo atual: RTC${" "}
                           {Number(solicitacao.wallet.balance).toFixed(2)}
                         </span>
                       </>

@@ -67,7 +67,7 @@ function RelogioData() {
             <div className="space-y-1">
                <div className="flex items-center space-x-2">
                   <div className="text-xl font-semibold text-white">
-                     {`${dataHora.diaSemana}, ${dataHora.diaData} de ${dataHora.mes} de ${dataHora.ano}`}
+                     {`${dataHora.diaSemana}, ${dataHora.diaData} do ${dataHora.mes} de ${dataHora.ano}`}
                   </div>
                   <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                </div>

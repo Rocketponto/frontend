@@ -99,7 +99,6 @@ function RelatorioRocketcoins() {
 
    const exportarRelatorio = async () => {
       try {
-         // ✅ ADICIONAR loading state
          setCarregandoTransacoes(true)
 
          const response = await walletService.exportarRelatorio({
@@ -136,7 +135,6 @@ function RelatorioRocketcoins() {
 
    return (
       <div className="space-y-6">
-         {/* Header */}
          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center space-x-3">
                <AiOutlineBarChart className="text-2xl text-blue-500" />
@@ -166,72 +164,66 @@ function RelatorioRocketcoins() {
             </button>
          </div>
 
-         {/* Filtros */}
-         <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
-            <h3 className="text-lg font-medium text-white mb-4 flex items-center">
-               <AiOutlineCalendar className="mr-2 text-blue-400" />
-               Filtros de Transações
-            </h3>
+         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div>
+               <label className="block text-gray-300 text-sm font-medium mb-2">
+                  Data Início
+               </label>
+               <input
+                  type="date"
+                  value={dataInicio}
+                  onChange={(e) => setDataInicio(e.target.value)}
+                  className="w-full bg-gray-rocket-700 text-white rounded-lg px-3 py-2 border border-gray-600 focus:border-blue-500 focus:outline-none"
+               />
+            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-               <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">
-                     Data Início
-                  </label>
-                  <input
-                     type="date"
-                     value={dataInicio}
-                     onChange={(e) => setDataInicio(e.target.value)}
-                     className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 border border-gray-600 focus:border-blue-500 focus:outline-none"
-                  />
-               </div>
+            <div>
+               <label className="block text-gray-300 text-sm font-medium mb-2">
+                  Data Fim
+               </label>
+               <input
+                  type="date"
+                  value={dataFim}
+                  onChange={(e) => setDataFim(e.target.value)}
+                  className="w-full bg-gray-rocket-700 text-white rounded-lg px-3 py-2 border border-gray-600 focus:border-blue-500 focus:outline-none"
+               />
+            </div>
 
-               <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">
-                     Data Fim
-                  </label>
-                  <input
-                     type="date"
-                     value={dataFim}
-                     onChange={(e) => setDataFim(e.target.value)}
-                     className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 border border-gray-600 focus:border-blue-500 focus:outline-none"
-                  />
-               </div>
+            <div>
+               <label className="block text-gray-300 text-sm font-medium mb-2">
+                  Tipo de Transação
+               </label>
+               <select
+                  value={tipoFiltro}
+                  onChange={(e) => setTipoFiltro(e.target.value as any)}
+                  className="w-full bg-gray-rocket-700 text-white rounded-lg px-3 py-2 border border-gray-600 focus:border-blue-500 focus:outline-none"
+               >
+                  <option value="todos">Todas</option>
+                  <option value="CREDIT">Créditos</option>
+                  <option value="DEBIT">Débitos</option>
+               </select>
+            </div>
 
-               <div>
-                  <label className="block text-gray-300 text-sm font-medium mb-2">
-                     Tipo de Transação
-                  </label>
-                  <select
-                     value={tipoFiltro}
-                     onChange={(e) => setTipoFiltro(e.target.value as any)}
-                     className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 border border-gray-600 focus:border-blue-500 focus:outline-none"
-                  >
-                     <option value="todos">Todas</option>
-                     <option value="CREDIT">Créditos</option>
-                     <option value="DEBIT">Débitos</option>
-                  </select>
-               </div>
-
-               <div className="flex items-end">
-                  <button
-                     onClick={() => buscarTransacoes(1)}
-                     disabled={carregandoTransacoes}
-                     className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
-                  >
-                     {carregandoTransacoes ? (
-                        <AiOutlineLoading3Quarters className="animate-spin" />
-                     ) : (
-                        <AiOutlineEye />
-                     )}
-                     <span>Filtrar</span>
-                  </button>
-               </div>
+            <div>
+               <label className="block text-transparent text-sm font-medium mb-2 select-none">
+                  Ação
+               </label>
+               <button
+                  onClick={() => buscarTransacoes(1)}
+                  disabled={carregandoTransacoes}
+                  className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors flex items-center justify-center space-x-2"
+               >
+                  {carregandoTransacoes ? (
+                     <AiOutlineLoading3Quarters className="animate-spin" />
+                  ) : (
+                     <AiOutlineEye />
+                  )}
+                  <span>Filtrar</span>
+               </button>
             </div>
          </div>
 
-         {/* Lista de Transações */}
-         <div className="bg-gray-800/50 rounded-lg border border-gray-700">
+         <div className="bg-gray-rocket-700/50 rounded-lg border border-gray-700">
             <div className="p-6 border-b border-gray-700">
                <h3 className="text-lg font-medium text-white flex items-center">
                   <AiOutlineDollarCircle className="mr-2 text-green-400" />
@@ -287,7 +279,7 @@ function RelatorioRocketcoins() {
                               <div className="text-right">
                                  <div className={`font-bold text-lg font-mono ${transacao.type === 'CREDIT' ? 'text-green-400' : 'text-red-400'
                                     }`}>
-                                    {transacao.type === 'CREDIT' ? '+' : '-'}RC$ {Number(transacao.amount).toFixed(2)}
+                                    {transacao.type === 'CREDIT' ? '+' : '-'}RTC$ {Number(transacao.amount).toFixed(2)}
                                  </div>
                                  <div className="text-gray-400 text-xs">
                                     {new Date(transacao.createdAt).toLocaleDateString('pt-BR')} às{' '}
@@ -298,7 +290,6 @@ function RelatorioRocketcoins() {
                         </div>
                      ))}
 
-                     {/* Paginação */}
                      {paginacao.totalPaginas > 1 && (
                         <div className="flex items-center justify-center space-x-2 pt-6">
                            <button

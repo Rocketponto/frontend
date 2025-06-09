@@ -138,14 +138,12 @@ function AdicionarRocketcoins({ onUpdate }: AdicionarRocketcoinsProps) {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Seleção de Usuário */}
-        <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+        <div className="bg-gray-rocket-700 rounded-lg p-6 border border-gray-700 shadow-lg shadow-black/10">
           <h3 className="text-lg font-medium text-white mb-4 flex items-center">
-            <AiOutlineUser className="mr-2 text-blue-400" />
+            <AiOutlineUser className="mr-2 text-green-400" />
             Selecionar Usuário
           </h3>
 
-          {/* Busca */}
           <div className="relative mb-4">
             <AiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
             <input
@@ -153,11 +151,10 @@ function AdicionarRocketcoins({ onUpdate }: AdicionarRocketcoinsProps) {
               placeholder="Buscar por nome ou email..."
               value={busca}
               onChange={(e) => setBusca(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 bg-gray-700 text-white rounded-lg border border-gray-600 focus:border-blue-500 focus:outline-none"
+              className="w-full pl-10 pr-4 py-2 bg-gray-rocket-700 text-white rounded-lg border border-gray-600 focus:border-rocket-red-700 focus:outline-none"
             />
           </div>
 
-          {/* Lista de Usuários */}
           <div className="max-h-80 overflow-y-auto space-y-2">
             {carregando ? (
               <div className="flex items-center justify-center py-8">
@@ -171,8 +168,8 @@ function AdicionarRocketcoins({ onUpdate }: AdicionarRocketcoinsProps) {
                   onClick={() => setUsuarioSelecionado(usuario)}
                   className={`w-full p-3 rounded-lg text-left transition-all border ${
                     usuarioSelecionado?.id === usuario.id
-                      ? "bg-blue-600/20 border-blue-500/50 text-white"
-                      : "bg-gray-700/50 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
+                      ? "bg-rocket-red-700/20 border-rocket-red-600/50 text-white"
+                      : "bg-gray-rocket-700/50 border-gray-600 text-gray-300 hover:bg-gray-700 hover:text-white"
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -183,7 +180,7 @@ function AdicionarRocketcoins({ onUpdate }: AdicionarRocketcoinsProps) {
                       </div>
                     </div>
                     {usuarioSelecionado?.id === usuario.id && (
-                      <AiOutlineCheckCircle className="text-blue-400" />
+                      <AiOutlineCheckCircle className="text-green-400" />
                     )}
                   </div>
                 </button>
@@ -199,7 +196,7 @@ function AdicionarRocketcoins({ onUpdate }: AdicionarRocketcoinsProps) {
         </div>
 
         {/* Formulário */}
-        <div className="bg-gray-800/50 rounded-lg p-6 border border-gray-700">
+        <div className="bg-gray-rocket-700/50 rounded-lg p-6 border border-gray-700">
           <h3 className="text-lg font-medium text-white mb-4 flex items-center">
             <AiOutlineDollarCircle className="mr-2 text-green-400" />
             Dados da Transação
@@ -220,7 +217,7 @@ function AdicionarRocketcoins({ onUpdate }: AdicionarRocketcoinsProps) {
               <div
                 className={`p-3 rounded-lg border ${
                   usuarioSelecionado
-                    ? "bg-blue-600/10 border-blue-500/30 text-blue-400"
+                    ? "bg-green-400/10 border-green-400/30 text-white"
                     : "bg-gray-700 border-gray-600 text-gray-400"
                 }`}
               >
@@ -241,7 +238,7 @@ function AdicionarRocketcoins({ onUpdate }: AdicionarRocketcoinsProps) {
                 value={AuxiliaryFunctions.formatarMoeda(valor)}
                 onChange={handleValorChange}
                 placeholder="0.00"
-                className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 border border-gray-600 focus:border-green-500 focus:outline-none"
+                className="w-full bg-gray-rocket-700 text-white rounded-lg px-3 py-2 border border-gray-600 focus:border-green-500 focus:outline-none"
                 required
               />
             </div>
@@ -256,7 +253,7 @@ function AdicionarRocketcoins({ onUpdate }: AdicionarRocketcoinsProps) {
                 value={titulo}
                 onChange={(e) => setTitulo(e.target.value)}
                 placeholder="Ex: Bônus por desempenho"
-                className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 border border-gray-600 focus:border-green-500 focus:outline-none"
+                className="w-full bg-gray-rocket-700 text-white rounded-lg px-3 py-2 border border-gray-600 focus:border-green-500 focus:outline-none"
                 required
               />
             </div>
@@ -271,7 +268,7 @@ function AdicionarRocketcoins({ onUpdate }: AdicionarRocketcoinsProps) {
                 onChange={(e) => setDescricao(e.target.value)}
                 placeholder="Descreva o motivo da adição de rocketcoins..."
                 rows={3}
-                className="w-full bg-gray-700 text-white rounded-lg px-3 py-2 border border-gray-600 focus:border-green-500 focus:outline-none resize-none"
+                className="w-full bg-gray-rocket-700 text-white rounded-lg px-3 py-2 border border-gray-600 focus:border-green-500 focus:outline-none resize-none"
                 required
               />
             </div>

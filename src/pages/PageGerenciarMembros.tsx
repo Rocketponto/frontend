@@ -51,9 +51,13 @@ function GerenciarMembros() {
    const [processando, setProcessando] = useState<string | null>(null)
    const navigate = useNavigate()
 
+   const [membros, setMembros] = useState<any[]>([])
+   const [loadingMembros, setLoadingMembros] = useState(false)
+   const [erroMembros, setErroMembros] = useState('')
+   const [filtroMembros, setFiltroMembros] = useState('')
+
    const [activeTab, setActiveTab] = useState<'pontos' | 'membros'>('pontos')
 
-   // Estados dos modais
    const [modals, setModals] = useState({
       cadastrar: false,
       roles: false,
@@ -83,6 +87,8 @@ function GerenciarMembros() {
    useEffect(() => {
       if (activeTab === 'pontos') {
          buscarPontos()
+      } else if (activeTab === 'membros') {
+         buscarMembros()
       }
       buscarEstatisticas()
    }, [paginacao.page, filtros, activeTab])
@@ -112,6 +118,23 @@ function GerenciarMembros() {
          setErro(error.message)
       } finally {
          setLoading(false)
+      }
+   }
+
+   const buscarMembros = async () => {
+      try {
+         setLoadingMembros(true)
+         setErroMembros('')
+
+         const response = await authService.buscarMembrosAtivo()
+
+         if (response.success && response.data) {
+            setMembros(response.data)
+         }
+      } catch (error: any) {
+         setErroMembros(error.message || 'Erro ao buscar membros')
+      } finally {
+         setLoadingMembros(false)
       }
    }
 
@@ -199,6 +222,15 @@ function GerenciarMembros() {
       setModals(prev => ({ ...prev, [modalName]: false }))
    }
 
+   const membrosFiltrados = membros.filter(membro =>
+      membro.name.toLowerCase().includes(filtroMembros.toLowerCase()) ||
+      membro.email.toLowerCase().includes(filtroMembros.toLowerCase())
+   )
+
+   const formatarData = (data: string) => {
+      return new Date(data).toLocaleDateString('pt-BR')
+   }
+
    return (
       <div className="p-6 space-y-6">
          {/* Header com botões de ação */}
@@ -239,7 +271,7 @@ function GerenciarMembros() {
                   title="Gerenciar roles e permissões"
                >
                   <AiOutlineCrown className="w-4 h-4" />
-                  <span>Roles</span>
+                  <span>Cargos</span>
                </button>
 
                <button
@@ -419,41 +451,159 @@ function GerenciarMembros() {
 
                {activeTab === 'membros' && (
                   <div className="space-y-6">
-                     {/* Placeholder para lista de membros */}
-                     <div className="text-center py-12">
-                        <AiOutlineTeam className="text-4xl text-gray-500 mx-auto mb-4" />
-                        <h3 className="text-xl font-semibold text-white mb-2">Lista de Membros</h3>
-                        <p className="text-gray-400 mb-6">
-                           Aqui será exibida a lista completa de membros da equipe
-                        </p>
 
-                        {/* Cards de ação rápida */}
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                     <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold text-white flex items-center">
+                           <AiOutlineTeam className="mr-2" />
+                           Lista de Membros ({membrosFiltrados.length})
+                        </h3>
+
+                        <div className="flex items-center space-x-4">
+                           <div className="relative">
+                              <AiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                              <input
+                                 type="text"
+                                 value={filtroMembros}
+                                 onChange={(e) => setFiltroMembros(e.target.value)}
+                                 placeholder="Buscar por nome ou email..."
+                                 className="w-64 bg-gray-700 text-white rounded-lg pl-10 pr-4 py-2 border border-gray-600 focus:border-rocket-red-500 focus:ring-2 focus:ring-rocket-red-500/20 focus:outline-none"
+                              />
+                           </div>
+
+                           <button
+                              onClick={buscarMembros}
+                              disabled={loadingMembros}
+                              className="flex items-center space-x-2 bg-rocket-red-600 hover:bg-rocket-red-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+                           >
+                              <AiOutlineClockCircle className={loadingMembros ? 'animate-spin' : ''} />
+                              <span>Atualizar</span>
+                           </button>
+                        </div>
+                     </div>
+
+                     {erroMembros && (
+                        <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm">
+                           {erroMembros}
+                        </div>
+                     )}
+
+                     {loadingMembros ? (
+                        <div className="flex items-center justify-center py-12">
+                           <AiOutlineClockCircle className="text-2xl text-gray-400 animate-spin mr-3" />
+                           <span className="text-gray-400">Carregando membros...</span>
+                        </div>
+                     ) : membrosFiltrados.length === 0 ? (
+                        <div className="text-center py-12">
+                           <AiOutlineTeam className="text-4xl text-gray-500 mx-auto mb-4" />
+                           <h3 className="text-xl font-semibold text-white mb-2">
+                              {filtroMembros ? 'Nenhum membro encontrado' : 'Nenhum membro cadastrado'}
+                           </h3>
+                           <p className="text-gray-400 mb-6">
+                              {filtroMembros
+                                 ? 'Tente ajustar os filtros de busca'
+                                 : 'Comece cadastrando o primeiro membro da equipe'
+                              }
+                           </p>
+                           {!filtroMembros && (
+                              <button
+                                 onClick={() => openModal('cadastrar')}
+                                 className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                              >
+                                 <AiOutlineUserAdd className="inline mr-2" />
+                                 Cadastrar Primeiro Membro
+                              </button>
+                           )}
+                        </div>
+                     ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                           {membrosFiltrados.map((membro) => (
+                              <div
+                                 key={membro.id}
+                                 className="bg-gray-rocket-700/50 border border-gray-700 rounded-lg p-6 hover:border-rocket-red-500/50 transition-colors"
+                              >
+                                 <div className="flex items-start justify-between mb-4">
+                                    <div className="flex-1">
+                                       <h4 className="text-lg font-semibold text-white mb-1">
+                                          {membro.name}
+                                       </h4>
+                                       <p className="text-gray-400 text-sm mb-2">
+                                          {membro.email}
+                                       </p>
+
+                                       <div className="flex items-center space-x-2 mb-3">
+                                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs border ${
+                                             membro.role === 'DIRETOR'
+                                                ? 'bg-purple-500/10 text-purple-400 border-purple-500/30'
+                                                : 'bg-blue-500/10 text-blue-400 border-blue-500/30'
+                                          }`}>
+                                             {membro.role === 'DIRETOR' ? (
+                                                <AiOutlineCrown className="w-3 h-3 mr-1" />
+                                             ) : (
+                                                <AiOutlineTeam className="w-3 h-3 mr-1" />
+                                             )}
+                                             {membro.role}
+                                          </span>
+
+                                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs border ${
+                                             membro.isActive
+                                                ? 'bg-green-500/10 text-green-400 border-green-500/30'
+                                                : 'bg-red-500/10 text-red-400 border-red-500/30'
+                                          }`}>
+                                             <div className={`w-2 h-2 rounded-full mr-1 ${
+                                                membro.isActive ? 'bg-green-400' : 'bg-red-400'
+                                             }`}></div>
+                                             {membro.isActive ? 'Ativo' : 'Inativo'}
+                                          </span>
+                                       </div>
+
+                                       <p className="text-gray-500 text-xs">
+                                          Cadastrado em: {formatarData(membro.created_at)}
+                                       </p>
+                                    </div>
+                                 </div>
+
+                                 <div className="flex space-x-2">
+                                    <button
+                                       onClick={() => openModal('status')}
+                                       className="flex-1 bg-rocket-red-600/20 hover:bg-rocket-red-700 text-white px-3 py-2 rounded text-sm transition-colors"
+                                    >
+                                       Status
+                                    </button>
+                                 </div>
+                              </div>
+                           ))}
+                        </div>
+                     )}
+
+                     {/* Cards de ação rápida */}
+                     <div className="border-t border-gray-700 pt-6">
+                        <h4 className="text-lg font-semibold text-white mb-4">Ações Rápidas</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                            <button
                               onClick={() => openModal('cadastrar')}
-                              className="bg-green-600/10 border border-green-500/30 rounded-lg p-6 text-center hover:bg-green-600/20 transition-colors group"
+                              className="bg-green-600/10 border border-green-500/30 rounded-lg p-4 text-center hover:bg-green-600/20 transition-colors group"
                            >
-                              <AiOutlineUserAdd className="text-4xl text-green-500 mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                              <h4 className="text-lg font-semibold text-white mb-2">Cadastrar Membro</h4>
-                              <p className="text-gray-400 text-sm">Adicione novos funcionários ao sistema</p>
+                              <AiOutlineUserAdd className="text-2xl text-green-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                              <h5 className="font-semibold text-white mb-1">Cadastrar Membro</h5>
+                              <p className="text-gray-400 text-xs">Adicionar novo funcionário</p>
                            </button>
 
                            <button
                               onClick={() => openModal('roles')}
-                              className="bg-purple-600/10 border border-purple-500/30 rounded-lg p-6 text-center hover:bg-purple-600/20 transition-colors group"
+                              className="bg-purple-600/10 border border-purple-500/30 rounded-lg p-4 text-center hover:bg-purple-600/20 transition-colors group"
                            >
-                              <AiOutlineCrown className="text-4xl text-purple-500 mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                              <h4 className="text-lg font-semibold text-white mb-2">Alterar Roles</h4>
-                              <p className="text-gray-400 text-sm">Gerencie permissões e cargos</p>
+                              <AiOutlineCrown className="text-2xl text-purple-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                              <h5 className="font-semibold text-white mb-1">Alterar Roles</h5>
+                              <p className="text-gray-400 text-xs">Gerenciar permissões</p>
                            </button>
 
                            <button
                               onClick={() => openModal('status')}
-                              className="bg-orange-600/10 border border-orange-500/30 rounded-lg p-6 text-center hover:bg-orange-600/20 transition-colors group"
+                              className="bg-orange-600/10 border border-orange-500/30 rounded-lg p-4 text-center hover:bg-orange-600/20 transition-colors group"
                            >
-                              <AiOutlineUserDelete className="text-4xl text-orange-500 mx-auto mb-3 group-hover:scale-110 transition-transform" />
-                              <h4 className="text-lg font-semibold text-white mb-2">Gerenciar Status</h4>
-                              <p className="text-gray-400 text-sm">Ativar/Inativar funcionários</p>
+                              <AiOutlineUserDelete className="text-2xl text-orange-500 mx-auto mb-2 group-hover:scale-110 transition-transform" />
+                              <h5 className="font-semibold text-white mb-1">Gerenciar Status</h5>
+                              <p className="text-gray-400 text-xs">Ativar/Inativar membros</p>
                            </button>
                         </div>
                      </div>
