@@ -7,6 +7,7 @@ import Login from "./components/Login/Login"
 import AreaDiretorSelect from "./pages/PageAreaDiretorSelect"
 import GerenciarMembros from "./pages/PageGerenciarMembros"
 import GerenciarRocketcoins from "./pages/PageGerenciarRocketcoins"
+import { ToastProvider } from "./components/Toast/ToastProvider"
 
 function App() {
   const [sidebarOpen, setSiderbarOpen] = useState(true)
@@ -16,6 +17,7 @@ function App() {
   }
   return (
     <Router>
+      <ToastProvider>
       <Routes>
         <Route path="/login" element={<Login />} />
         <Route path="/" element={<Navigate to="login" />} />
@@ -35,6 +37,7 @@ function App() {
           </div>
         } />
       </Routes>
+      </ToastProvider>
     </Router>
   )
 }

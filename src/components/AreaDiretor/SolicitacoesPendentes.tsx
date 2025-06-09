@@ -9,6 +9,7 @@ import {
 import { walletService } from "../../hooks/useWallet";
 import { useEffect, useState } from "react";
 import React from "react";
+import { useToast } from "../Toast/ToastProvider";
 
 interface Solicitacao {
   id: number;
@@ -58,6 +59,7 @@ function SolicitacoesPendentes({ onUpdate }: SolicitacoesPendentesProps) {
     id: number | null;
   }>({ aberto: false, id: null });
   const [motivoRejeicao, setMotivoRejeicao] = useState("");
+  const { showSuccess, showError } = useToast()
 
   const [paginacao, setPaginacao] = useState({
     paginaAtual: 1,
@@ -121,9 +123,11 @@ function SolicitacoesPendentes({ onUpdate }: SolicitacoesPendentesProps) {
 
       if (acao === 'APPROVED') {
         response = await walletService.aprovarSolicitacao(id);
+        showSuccess('Solicitação aprovada!', 'Solicitação de compra aprovada.')
         buscarSolicitacoes();
       } else {
         response = await walletService.rejeitarSolicitacao(id, motivo || 'Rejeitado pelo diretor');
+        showSuccess('Solicitação recusada!', 'Solicitação de compra recusada.')
         buscarSolicitacoes();
       }
 
@@ -134,6 +138,7 @@ function SolicitacoesPendentes({ onUpdate }: SolicitacoesPendentesProps) {
         throw new Error(response.message || 'Erro ao processar solicitação');
       }
     } catch (error: any) {
+      showError('Erro ao processar solicitação!', 'Erro no processamento da solicitação.')
       console.error('Erro ao processar solicitação:', error);
     } finally {
       setProcessando(null);

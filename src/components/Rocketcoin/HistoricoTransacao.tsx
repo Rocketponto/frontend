@@ -116,13 +116,13 @@ function HistoricoTransacoes() {
         <div className="bg-green-600/10 border border-green-500/30 rounded-lg p-3">
           <div className="text-green-400 text-xs font-medium">Total Entradas</div>
           <div className="text-lg font-bold text-white">
-            RC$ {Number(totalEntrada.toFixed(2))}
+            RTC$ {Number(totalEntrada.toFixed(2))}
           </div>
         </div>
         <div className="bg-red-600/10 border border-red-500/30 rounded-lg p-3">
           <div className="text-red-400 text-xs font-medium">Total Saídas</div>
           <div className="text-lg font-bold text-white">
-            RC$ {Number(totalSaida.toFixed(2))}
+            RTC$ {Number(totalSaida.toFixed(2))}
           </div>
         </div>
       </div>
@@ -162,7 +162,7 @@ function HistoricoTransacoes() {
                 <div className="text-right">
                   <div className={`font-bold text-lg font-mono ${transacao.type === 'CREDIT' ? 'text-green-400' : 'text-red-400'
                     }`}>
-                    {transacao.type === 'CREDIT' ? '+' : '-'}RC$ {Number(transacao.amount).toFixed(2)}
+                    {transacao.type === 'CREDIT' ? '+' : '-'}RTC$ {Number(transacao.amount).toFixed(2)}
                   </div>
                   <div className="text-gray-400 text-xs">
                     {transacao.data}

@@ -8,6 +8,7 @@ import {
 } from "react-icons/ai";
 import { walletService } from "../../hooks/useWallet";
 import { AuxiliaryFunctions } from "../../utils/AuxiliaryFunctions";
+import { useToast } from "../Toast/ToastProvider";
 
 interface Solicitacao {
   id: number;
@@ -29,6 +30,7 @@ interface Solicitacao {
 function RegistrarGasto() {
   const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
   const [total, setTotal] = useState(0);
+  const { showSuccess, showError } = useToast()
 
   const [mostrarFormulario, setMostrarFormulario] = useState(false);
   const [formulario, setFormulario] = useState({
@@ -73,10 +75,12 @@ function RegistrarGasto() {
         new Date().toISOString()
       );
 
+      showSuccess('Solicitação concluída!', 'Sucesso ao solicitar novo gasto.')
       setFormulario({ titulo: "", descricao: "", valor: "" });
       setMostrarFormulario(false);
       await fetchSolicitacoesPendentes(1, paginacao.itensPorPagina);
     } catch (error: any) {
+      showError('Erro ao solicitar', 'Erro no processamento de solicitar novo gasto.')
       setErro(error.message || "Saldo insuficiente ou erro na transação");
     } finally {
       setSalvando(false);
@@ -214,7 +218,7 @@ function RegistrarGasto() {
 
             <div>
               <label className="block text-gray-300 text-sm font-medium mb-2">
-                Valor (RC$) *
+                Valor (RTC$) *
               </label>
               <input
                 type="text"
@@ -236,12 +240,12 @@ function RegistrarGasto() {
                 {salvando ? (
                   <>
                     <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                    <span>Salvando...</span>
+                    <span>Solicitando...</span>
                   </>
                 ) : (
                   <>
                     <AiOutlineCheck />
-                    <span>Salvar</span>
+                    <span>Solicitar</span>
                   </>
                 )}
               </button>
@@ -267,10 +271,10 @@ function RegistrarGasto() {
         <div className="flex items-center justify-between">
           <div>
             <div className="text-red-400 text-sm font-medium">
-              Total de RC$ nas Solicitações
+              Total de RTC$ nas Solicitações
             </div>
             <div className="text-2xl font-bold text-white">
-              RC$ {total.toFixed(2)}
+              RTC$ {total.toFixed(2)}
             </div>
           </div>
           <AiOutlineDollarCircle className="text-red-400 text-2xl" />
@@ -302,7 +306,7 @@ function RegistrarGasto() {
 
                 <div className="text-right ml-4">
                   <div className="text-white font-bold text-lg font-mono">
-                    RC$ {solicitacao.amount}
+                    RTC$ {solicitacao.amount}
                   </div>
                 </div>
               </div>

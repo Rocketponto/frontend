@@ -11,6 +11,7 @@ import {
 import { authService } from "../../hooks/useAuth";
 import { walletService } from "../../hooks/useWallet";
 import { AuxiliaryFunctions } from "../../utils/AuxiliaryFunctions";
+import { useToast } from "../Toast/ToastProvider";
 
 interface Usuario {
   id: number;
@@ -36,6 +37,7 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
   const [salvando, setSalvando] = useState(false);
   const [busca, setBusca] = useState("");
   const [erro, setErro] = useState("");
+  const { showSuccess, showError } = useToast()
 
   useEffect(() => {
     buscarUsuarios();
@@ -128,16 +130,14 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
         // Atualizar estatísticas
         onUpdate();
 
-        alert(
-          `RTC$ ${valorNum.toFixed(2)} removido com sucesso de ${
+        showSuccess('RTC$ removido', `RTC$ ${Number(valorNum.toFixed(2)) / 100} removido com sucesso de ${
             usuarioSelecionado.name
-          }!`
-        );
+          }!`)
       } else {
         throw new Error(response.message || "Erro ao remover rocketcoins");
       }
     } catch (error: any) {
-      console.error("Erro ao remover rocketcoins:", error);
+      showError('Erro ao remover RTC$', 'Erro no processamento.')
       setErro(error.message || "Erro ao processar solicitação");
     } finally {
       setSalvando(false);

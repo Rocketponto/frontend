@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineUser, AiOutlineLock, AiOutlineRocket, AiFillRocket } from 'react-icons/ai'
 import { useNavigate } from 'react-router-dom'
 import { authService } from '../../hooks/useAuth'
+import { useToast } from '../Toast/ToastProvider'
 
 function Login() {
    const [formData, setFormData] = useState({
@@ -12,6 +13,7 @@ function Login() {
    const [carregando, setCarregando] = useState(false)
    const [erro, setErro] = useState('')
    const [lembrarMe, setLembrarMe] = useState(false)
+   const { showSuccess, showError, showWarning } = useToast()
 
    const navigate = useNavigate()
 
@@ -20,7 +22,6 @@ function Login() {
          ...prev,
          [field]: value
       }))
-      // Limpar erro quando usuário digitar
       if (erro) setErro('')
    }
 
@@ -28,7 +29,7 @@ function Login() {
       e.preventDefault()
 
       if (!formData.email || !formData.password) {
-         setErro('Preencha todos os campos')
+         showWarning('Campos obrigatórios', 'Por favor, preencha todos os campos para continuar')
          return
       }
 
@@ -49,12 +50,35 @@ function Login() {
                localStorage.setItem('rememberMe', 'true')
             }
 
+            showSuccess('Login realizado com sucesso!', `Bem-vindo ao rocketponto!`)
+
             navigate('/ponto')
+
          } else {
-            setErro('Erro ao fazer login')
+            showError('Erro no login', 'Resposta inválida do servidor.')
          }
       } catch (error: any) {
-         setErro('Erro ao fazer login')
+         if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+            showError(
+               'Credenciais inválidas',
+               'Email ou senha incorretos. Verifique seus dados e tente novamente.'
+            )
+         } else if (error.message?.includes('network') || error.message?.includes('Network')) {
+            showError(
+               'Erro de conexão',
+               'Verifique sua conexão com a internet e tente novamente.'
+            )
+         } else if (error.message?.includes('timeout')) {
+            showWarning(
+               'Tempo esgotado',
+               'O servidor demorou para responder. Tente novamente.'
+            )
+         } else {
+            showError(
+               'Erro inesperado',
+               error.message || 'Algo deu errado. Tente novamente em alguns instantes.'
+            )
+         }
       } finally {
          setCarregando(false)
       }

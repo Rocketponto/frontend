@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { AiOutlineClose, AiOutlineUser, AiOutlineMail, AiOutlineLock, AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { authService } from '../../hooks/useAuth'
+import { useToast } from '../Toast/ToastProvider'
 
 interface ModalCadastrarMembroProps {
    onClose: () => void
@@ -25,6 +26,7 @@ function ModalCadastrarMembro({ onClose, onSuccess }: ModalCadastrarMembroProps)
    })
    const [loading, setLoading] = useState(false)
    const [erro, setErro] = useState('')
+   const { showSuccess, showError } = useToast()
 
    const handleInputChange = (field: keyof FormData, value: string) => {
       setFormData(prev => ({ ...prev, [field]: value }))
@@ -61,8 +63,10 @@ function ModalCadastrarMembro({ onClose, onSuccess }: ModalCadastrarMembroProps)
          })
 
          onSuccess?.()
+         showSuccess('Usuário cadastrado!', 'Sucesso ao cadastrar novo usuário.')
          onClose()
       } catch (error: any) {
+         showError('Erro ao cadastrar usuário!', 'Erro no processamento de cadastrar novo usuário.')
          setErro(error.message || 'Erro ao cadastrar membro')
       } finally {
          setLoading(false)

@@ -10,6 +10,7 @@ import {
 import { authService } from "../../hooks/useAuth";
 import { walletService } from "../../hooks/useWallet";
 import { AuxiliaryFunctions } from "../../utils/AuxiliaryFunctions";
+import { useToast } from "../Toast/ToastProvider";
 
 interface Usuario {
   id: number;
@@ -34,6 +35,7 @@ function AdicionarRocketcoins({ onUpdate }: AdicionarRocketcoinsProps) {
   const [salvando, setSalvando] = useState(false);
   const [busca, setBusca] = useState("");
   const [erro, setErro] = useState("");
+  const { showSuccess, showError } = useToast()
 
   useEffect(() => {
     buscarUsuarios();
@@ -94,17 +96,14 @@ function AdicionarRocketcoins({ onUpdate }: AdicionarRocketcoinsProps) {
 
         onUpdate();
 
-        alert(
-          `RC$ ${Number(valor).toFixed(2)} adicionado com sucesso para ${
+        showSuccess('RTC Creditado', `RTC$ ${Number(Number(valor).toFixed(2)) / 100} adicionado com sucesso para ${
             usuarioSelecionado.name
-          }!`
-        );
+          }!`)
       } else {
         throw new Error(response.message || "Erro ao adicionar rocketcoins");
       }
     } catch (error: any) {
-      console.error("Erro ao adicionar rocketcoins:", error);
-      setErro(error.message || "Erro ao processar solicitação");
+      showError('Erro ao adicionar RTC', 'Erro no processamento!')
     } finally {
       setSalvando(false);
     }

@@ -19,6 +19,7 @@ import RemoverRocketcoins from "../components/AreaDiretor/RemoverRocketcoins";
 import RelatorioRocketcoins from "../components/AreaDiretor/RelatorioRocketcoins";
 import { walletService } from "../hooks/useWallet";
 import { useNavigate } from "react-router-dom";
+import { useToast } from "../components/Toast/ToastProvider";
 
 interface TabOption {
   id: string;

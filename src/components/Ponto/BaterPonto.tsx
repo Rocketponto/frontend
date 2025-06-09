@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { AiOutlineLogin, AiOutlineLogout, AiOutlineClose, AiOutlineCheck } from 'react-icons/ai'
 import { pontoService } from '../../hooks/usePointRecord'
+import { useToast } from '../Toast/ToastProvider'
 
 interface StatusProps {
   entrada: string | null
@@ -20,14 +21,13 @@ function BaterPonto() {
   const [showDescriptionModal, setShowDescriptionModal] = useState(false)
   const [description, setDescription] = useState('')
   const [erro, setErro] = useState('')
+  const { showSuccess, showError } = useToast()
 
-  // Função para salvar estado no localStorage
   const salvarStatusLocal = (status: StatusProps) => {
-    const hoje = new Date().toISOString().split('T')[0] // YYYY-MM-DD
+    const hoje = new Date().toISOString().split('T')[0]
     localStorage.setItem(`pontoStatus_${hoje}`, JSON.stringify(status))
   }
 
-  // Função para carregar estado do localStorage
   const carregarStatusLocal = (): StatusProps | null => {
     const hoje = new Date().toISOString().split('T')[0]
     const statusSalvo = localStorage.getItem(`pontoStatus_${hoje}`)
@@ -136,13 +136,14 @@ function BaterPonto() {
           loading: false,
           tipo: 'saida'
         }
-
+        showSuccess('Ponto batido!', 'Sucesso ao bater ponto.')
         setPontoStatus(novoStatus)
         salvarStatusLocal(novoStatus)
 
       }
     } catch (error: any) {
       setErro(error.message)
+      showError('Erro ao bater ponto!', 'Erro no processamento de bater ponto.')
       setPontoStatus(prev => ({ ...prev, loading: false }))
     }
   }
@@ -174,7 +175,7 @@ function BaterPonto() {
           loading: false,
           tipo: 'entrada'
         }
-
+        showSuccess('Ponto batido!', 'Ponto de saída batido com sucesso.')
         setPontoStatus(novoStatus)
         salvarStatusLocal(novoStatus)
 
@@ -188,12 +189,13 @@ function BaterPonto() {
           }
           setPontoStatus(statusLimpo)
           salvarStatusLocal(statusLimpo)
-        }, 5000)
+        }, 3000)
 
         setDescription('')
       }
     } catch (error: any) {
       setErro(error.message)
+      showError('Erro ao bater ponto!', 'Erro ao processar ponto.')
       setPontoStatus(prev => ({ ...prev, loading: false }))
       setShowDescriptionModal(true)
     }
