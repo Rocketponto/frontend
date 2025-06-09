@@ -193,6 +193,10 @@ function GerenciarMembros() {
       }
    }
 
+   const recarregarTabela = async () => {
+      await buscarPontos()
+   }
+
    const rejeitarPonto = async (pontoId: string) => {
       try {
          setProcessando(pontoId)
@@ -233,7 +237,6 @@ function GerenciarMembros() {
 
    return (
       <div className="p-6 space-y-6">
-         {/* Header com botões de ação */}
          <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
                <button
@@ -254,7 +257,6 @@ function GerenciarMembros() {
                </div>
             </div>
 
-            {/* Botões de ação rápida */}
             <div className="flex space-x-3">
                <button
                   onClick={() => openModal('cadastrar')}
@@ -285,7 +287,6 @@ function GerenciarMembros() {
             </div>
          </div>
 
-         {/* Estatísticas rápidas */}
          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             <div className="bg-transparent border border-zinc-950 rounded-lg p-6">
                <div className="flex items-center">
@@ -361,11 +362,9 @@ function GerenciarMembros() {
                </div>
             </div>
 
-            {/* Conteúdo das abas */}
             <div className="p-6">
                {activeTab === 'pontos' && (
                   <div className="space-y-6">
-                     {/* Filtros */}
                      <div>
                         <div className="flex items-center justify-between mb-4">
                            <h3 className="text-lg font-semibold text-white flex items-center">
@@ -426,22 +425,6 @@ function GerenciarMembros() {
                                  <option value="PENDING">Pendente</option>
                                  <option value="APPROVED">Aprovado</option>
                                  <option value="REJECTED">Rejeitado</option>
-                              </select>
-                           </div>
-
-                           <div>
-                              <label className="block text-gray-300 text-sm font-medium mb-2">
-                                 Registros por página
-                              </label>
-                              <select
-                                 value={paginacao.limit}
-                                 onChange={(e) => setPaginacao(prev => ({ ...prev, limit: Number(e.target.value), page: 1 }))}
-                                 className="w-full bg-gray-700 text-white rounded-lg px-4 py-2 border border-gray-600 focus:border-rocket-red-500 focus:ring-2 focus:ring-rocket-red-500/20 focus:outline-none"
-                              >
-                                 <option value={5}>5</option>
-                                 <option value={10}>10</option>
-                                 <option value={20}>20</option>
-                                 <option value={50}>50</option>
                               </select>
                            </div>
                         </div>
@@ -612,7 +595,6 @@ function GerenciarMembros() {
             </div>
          </div>
 
-         {/* Tabela de pontos (só aparece na aba pontos) */}
          {activeTab === 'pontos' && (
             <TabelaPontosPaginada
                pontos={pontos}
@@ -623,6 +605,7 @@ function GerenciarMembros() {
                onAprovarPonto={aprovarPonto}
                onRejeitarPonto={rejeitarPonto}
                onPaginaChange={handlePaginaChange}
+               onRecarregarTabela={recarregarTabela}
             />
          )}
 

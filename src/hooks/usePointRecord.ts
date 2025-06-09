@@ -114,6 +114,16 @@ export const pontoService = {
       }
    },
 
+   fecharPonto: async (recordPointId: number): Promise<{success: true} | undefined> => {
+      try {
+         const response = await api.put(`/pointRecord/closed-point/${recordPointId}`)
+         return response.data
+      } catch (error) {
+         console.error('Erro ao fechar ponto:', error)
+         return undefined
+      }
+   },
+
    buscarHistoricoPontos: async (filtros: FiltrosHistorico = {}): Promise<HistoricoPontoResponse> => {
       try {
          const params = new URLSearchParams()
@@ -135,9 +145,9 @@ export const pontoService = {
       }
    },
 
-   buscarRegistrosDia: async (data?: string): Promise<any> => {
+   buscarRegistrosDia: async (userId: number): Promise<any> => {
       try {
-         const response = await api.get(`/pointRecord${data ? `?date=${data}` : ''}`)
+         const response = await api.get(`/pointRecord/get-last-point/${userId}`)
          return response.data
       } catch (error: any) {
          throw new Error(error.response?.data?.message || 'Erro ao buscar registros')

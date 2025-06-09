@@ -4,6 +4,9 @@ import {
    AiOutlineLeft,
    AiOutlineRight
 } from 'react-icons/ai'
+import { pontoService } from '../../hooks/usePointRecord'
+import { useToast } from '../Toast/ToastProvider'
+import { useState } from 'react'
 
 interface PontoMembro {
    id: string
@@ -43,6 +46,7 @@ interface TabelaPontosPaginadaProps {
    onAprovarPonto: (pontoId: string) => Promise<void>
    onRejeitarPonto: (pontoId: string) => Promise<void>
    onPaginaChange: (page: number) => void
+   onRecarregarTabela: () => Promise<void>
 }
 
 function MembrosTable({
@@ -50,12 +54,15 @@ function MembrosTable({
    paginacao,
    loading,
    erro,
-   onPaginaChange
+   onPaginaChange,
+   onRecarregarTabela
 }: TabelaPontosPaginadaProps) {
 
    const formatarData = (data: string) => {
       return new Date(data).toLocaleDateString('pt-BR')
    }
+   const { showSuccess, showError } = useToast()
+   const [processandoFechamento, setProcessandoFechamento] = useState<string | null>(null)
 
    const formatarHora = (data: string) => {
       return new Date(data).toLocaleTimeString('pt-BR', {
@@ -98,6 +105,25 @@ function MembrosTable({
       }
    }
 
+   const closedPointRecord = async (recordPointId: number) => {
+      try {
+         setProcessandoFechamento(recordPointId.toString())
+
+         const response = await pontoService.fecharPonto(recordPointId)
+
+         if (response?.success) {
+            showSuccess('Ponto fechado!', 'Ponto fechado com sucesso.')
+            await onRecarregarTabela()
+         } else {
+            showError('Erro ao fechar ponto!', 'Resposta inválida do servidor.')
+         }
+      } catch (error: any) {
+         showError('Erro ao fechar ponto!', error.message || 'Erro ao processar fechamento de ponto.')
+      } finally {
+         setProcessandoFechamento(null)
+      }
+   }
+
    return (
       <div className="bg-transparent border border-zinc-950 rounded-lg overflow-hidden">
          <div className="p-6 border-b border-gray-700">
@@ -136,6 +162,9 @@ function MembrosTable({
                            <th className="text-left py-3 px-4 font-medium text-gray-300">Total</th>
                            <th className="text-left py-3 px-4 font-medium text-gray-300">Status</th>
                            <th className="text-left py-3 px-4 font-medium text-gray-300">Descrição</th>
+                           {pontos.some(ponto => ponto.pointRecordStatus === 'IN_PROGRESS') && (
+                              <th className="text-left py-3 px-4 font-medium text-gray-300">Ação</th>
+                           )}
                         </tr>
                      </thead>
                      <tbody>
@@ -184,6 +213,28 @@ function MembrosTable({
                                     {ponto.description || 'Sem descrição'}
                                  </span>
                               </td>
+                              {pontos.some(p => p.pointRecordStatus === 'IN_PROGRESS') && (
+                                 <td className="py-4 px-4 max-w-xs">
+                                    {ponto.pointRecordStatus === 'IN_PROGRESS' ? (
+                                       <button
+                                          onClick={() => closedPointRecord(Number(ponto.id))}
+                                          disabled={processandoFechamento === ponto.id}
+                                          className="bg-yellow-600 hover:bg-yellow-700 disabled:bg-gray-600 text-white rounded-lg p-2 text-sm transition-colors flex items-center space-x-1"
+                                       >
+                                          {processandoFechamento === ponto.id ? (
+                                             <>
+                                                <AiOutlineLoading3Quarters className="animate-spin w-4 h-4" />
+                                                <span>Fechando...</span>
+                                             </>
+                                          ) : (
+                                             <span>Fechar ponto</span>
+                                          )}
+                                       </button>
+                                    ) : (
+                                       <span className="text-gray-500 text-sm">-</span>
+                                    )}
+                                 </td>
+                              )}
                            </tr>
                         ))}
                      </tbody>

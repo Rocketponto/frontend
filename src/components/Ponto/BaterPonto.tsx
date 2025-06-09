@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import { AiOutlineLogin, AiOutlineLogout, AiOutlineClose, AiOutlineCheck } from 'react-icons/ai'
 import { pontoService } from '../../hooks/usePointRecord'
-import { useToast } from '../Toast/ToastProvider'
+import { useToast } from '../../components/Toast/ToastProvider'
+import { MdRefresh } from 'react-icons/md'
 
 interface StatusProps {
   entrada: string | null
@@ -21,6 +22,7 @@ function BaterPonto() {
   const [showDescriptionModal, setShowDescriptionModal] = useState(false)
   const [description, setDescription] = useState('')
   const [erro, setErro] = useState('')
+  const [carregandoStatus, setCarregandoStatus] = useState(true)
   const { showSuccess, showError } = useToast()
 
   const salvarStatusLocal = (status: StatusProps) => {
@@ -28,82 +30,89 @@ function BaterPonto() {
     localStorage.setItem(`pontoStatus_${hoje}`, JSON.stringify(status))
   }
 
-  const carregarStatusLocal = (): StatusProps | null => {
-    const hoje = new Date().toISOString().split('T')[0]
-    const statusSalvo = localStorage.getItem(`pontoStatus_${hoje}`)
-
-    if (statusSalvo) {
-      return JSON.parse(statusSalvo)
-    }
-    return null
-  }
-
   useEffect(() => {
-    const statusSalvo = carregarStatusLocal()
-
-    if (statusSalvo) {
-      setPontoStatus(statusSalvo)
-    } else {
-      buscarRegistrosDia()
-    }
+    buscarStatusReal()
   }, [])
 
-  const buscarRegistrosDia = async () => {
+  const buscarStatusReal = async () => {
     try {
-      const response = await pontoService.buscarHistoricoPontos()
+      setCarregandoStatus(true)
 
-      if (response.success && response.data && response.data.length > 0) {
-        const hoje = new Date().toISOString().split('T')[0]
+      const user = localStorage.getItem('user')
+      const userData = user ? JSON.parse(user) : null
 
-        // Filtrar registros de hoje
-        const registrosHoje = response.data.filter((registro: any) => {
-          const dataRegistro = new Date(registro.createdAt).toISOString().split('T')[0]
-          return dataRegistro === hoje
-        })
+      const response = await pontoService.buscarRegistrosDia(userData.id)
 
-        if (registrosHoje.length > 0) {
-          // Pegar o último registro
-          const ultimoRegistro = registrosHoje[registrosHoje.length - 1]
+      if (response && response.lastPointRecord) {
+        const ultimoPonto = response.lastPointRecord
 
-          let novoStatus: StatusProps
+        let novoStatus: StatusProps
 
-          if (ultimoRegistro.entryDateHour && ultimoRegistro.exitDateHour) {
-            // Tem entrada E saída - dia finalizado
-            novoStatus = {
-              entrada: new Date(ultimoRegistro.entryDateHour).toLocaleTimeString('pt-BR'),
-              saida: new Date(ultimoRegistro.exitDateHour).toLocaleTimeString('pt-BR'),
-              loading: false,
-              tipo: 'entrada' // Pode registrar nova entrada
-            }
-          } else if (ultimoRegistro.entryDateHour) {
-            // Tem apenas entrada - próximo é saída
-            novoStatus = {
-              entrada: new Date(ultimoRegistro.entryDateHour).toLocaleTimeString('pt-BR'),
-              saida: null,
-              loading: false,
-              tipo: 'saida'
-            }
-          } else {
-            // Estado padrão
-            novoStatus = {
-              entrada: null,
-              saida: null,
-              loading: false,
-              tipo: 'entrada'
-            }
+        if (ultimoPonto.exitDateHour === null) {
+          novoStatus = {
+            entrada: ultimoPonto.entryDateHour ?
+              new Date(ultimoPonto.entryDateHour).toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+              }) : null,
+            saida: null,
+            loading: false,
+            tipo: 'saida'
           }
-
-          setPontoStatus(novoStatus)
-          salvarStatusLocal(novoStatus)
+        } else {
+          novoStatus = {
+            entrada: ultimoPonto.entryDateHour ?
+              new Date(ultimoPonto.entryDateHour).toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+              }) : null,
+            saida: ultimoPonto.exitDateHour ?
+              new Date(ultimoPonto.exitDateHour).toLocaleTimeString('pt-BR', {
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+              }) : null,
+            loading: false,
+            tipo: 'entrada'
+          }
         }
+
+        setPontoStatus(novoStatus)
+        salvarStatusLocal(novoStatus)
+
+      } else {
+        const statusInicial: StatusProps = {
+          entrada: null,
+          saida: null,
+          loading: false,
+          tipo: 'entrada'
+        }
+        setPontoStatus(statusInicial)
+        salvarStatusLocal(statusInicial)
       }
+
     } catch (error) {
-      console.error('Erro ao buscar registros:', error)
+      console.error('❌ Erro:', error)
+
+      const hoje = new Date().toISOString().split('T')[0]
+      const statusSalvo = localStorage.getItem(`pontoStatus_${hoje}`)
+
+      if (statusSalvo) {
+        setPontoStatus(JSON.parse(statusSalvo))
+      }
+    } finally {
+      setCarregandoStatus(false)
     }
+  }
+
+  const revalidarStatus = async () => {
+    await buscarStatusReal()
   }
 
   const handleBaterPonto = () => {
-    if (pontoStatus.loading) return
+    if (pontoStatus.loading || carregandoStatus) return
 
     setErro('')
 
@@ -124,22 +133,9 @@ function BaterPonto() {
       })
 
       if (response.success) {
-        const agora = new Date().toLocaleTimeString('pt-BR', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit'
-        })
+        showSuccess('Ponto batido!', 'Entrada registrada com sucesso.')
 
-        const novoStatus: StatusProps = {
-          entrada: agora,
-          saida: null,
-          loading: false,
-          tipo: 'saida'
-        }
-        showSuccess('Ponto batido!', 'Sucesso ao bater ponto.')
-        setPontoStatus(novoStatus)
-        salvarStatusLocal(novoStatus)
-
+        await revalidarStatus()
       }
     } catch (error: any) {
       setErro(error.message)
@@ -163,33 +159,9 @@ function BaterPonto() {
       })
 
       if (response.success) {
-        const agora = new Date().toLocaleTimeString('pt-BR', {
-          hour: '2-digit',
-          minute: '2-digit',
-          second: '2-digit'
-        })
+        showSuccess('Ponto batido!', 'Ponto de saída registrado com sucesso.')
 
-        const novoStatus: StatusProps = {
-          entrada: pontoStatus.entrada,
-          saida: agora,
-          loading: false,
-          tipo: 'entrada'
-        }
-        showSuccess('Ponto batido!', 'Ponto de saída batido com sucesso.')
-        setPontoStatus(novoStatus)
-        salvarStatusLocal(novoStatus)
-
-
-        setTimeout(() => {
-          const statusLimpo: StatusProps = {
-            entrada: null,
-            saida: null,
-            loading: false,
-            tipo: 'entrada'
-          }
-          setPontoStatus(statusLimpo)
-          salvarStatusLocal(statusLimpo)
-        }, 3000)
+        await revalidarStatus()
 
         setDescription('')
       }
@@ -209,8 +181,18 @@ function BaterPonto() {
 
   const getButtonText = () => {
     if (pontoStatus.loading) return 'Registrando...'
-    if (pontoStatus.tipo === 'entrada') return 'Bater Ponto de Entrada'
-    if (pontoStatus.tipo === 'saida') return 'Bater Ponto de Saída'
+    if (carregandoStatus) return 'Verificando status...'
+
+    if (pontoStatus.tipo === 'entrada') {
+      if (pontoStatus.entrada && pontoStatus.saida) {
+        return 'Bater Novo Ponto'
+      }
+      return 'Bater Ponto de Entrada'
+    }
+
+    if (pontoStatus.tipo === 'saida') {
+      return 'Registrar Saída'
+    }
   }
 
   const getButtonIcon = () => {
@@ -219,15 +201,28 @@ function BaterPonto() {
   }
 
   const getStatusColor = () => {
-    if (pontoStatus.saida) return 'bg-green-500' // Verde quando finalizado
-    if (pontoStatus.entrada) return 'bg-yellow-500' // Amarelo quando trabalhando
-    return 'bg-gray-500' // Cinza quando pendente
+    if (carregandoStatus) return 'bg-blue-500 animate-pulse'
+    if (pontoStatus.saida) return 'bg-green-500'
+    if (pontoStatus.entrada) return 'bg-yellow-500'
+    return 'bg-gray-500'
   }
 
   const getStatusText = () => {
+    if (carregandoStatus) return 'Verificando...'
     if (pontoStatus.saida) return 'Dia Finalizado'
     if (pontoStatus.entrada) return 'Trabalhando'
     return 'Pendente'
+  }
+
+  if (carregandoStatus) {
+    return (
+      <div className="bg-transparent rounded-lg p-6 shadow-xl border border-zinc-950">
+        <div className="text-center py-8">
+          <div className="w-8 h-8 border-2 border-white border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-400">Verificando status do ponto...</p>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -240,12 +235,19 @@ function BaterPonto() {
             </h3>
 
             <div className="flex items-center space-x-2">
-              <div className={`w-3 h-3 rounded-full transition-colors ${getStatusColor()} ${
-                pontoStatus.loading ? 'animate-pulse' : ''
-              }`}></div>
+              <div className={`w-3 h-3 rounded-full transition-colors ${getStatusColor()}`}></div>
               <span className="text-sm text-gray-400">
                 {getStatusText()}
               </span>
+
+              <button
+                onClick={revalidarStatus}
+                disabled={carregandoStatus}
+                className="text-gray-400 hover:text-white text-xs ml-2"
+                title="Atualizar status"
+              >
+                <MdRefresh className="text-lg text-rocket-red-600 hover:text-rocket-red-700"/>
+              </button>
             </div>
           </div>
 
@@ -294,19 +296,19 @@ function BaterPonto() {
           <div className="mt-auto">
             <button
               onClick={handleBaterPonto}
-              disabled={pontoStatus.loading}
+              disabled={pontoStatus.loading || carregandoStatus}
               className={`w-full py-4 px-6 rounded-lg font-semibold text-lg transition-all duration-300 ${
-                pontoStatus.loading
+                pontoStatus.loading || carregandoStatus
                   ? 'bg-gray-600 cursor-not-allowed'
                   : pontoStatus.tipo === 'entrada'
                   ? 'bg-rocket-red-600 hover:bg-rocket-red-700 hover:scale-105'
                   : 'bg-blue-600 hover:bg-blue-700 hover:scale-105'
               } text-white shadow-lg`}
             >
-              {pontoStatus.loading ? (
+              {pontoStatus.loading || carregandoStatus ? (
                 <div className="flex items-center justify-center space-x-2">
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                  <span>Registrando...</span>
+                  <span>{getButtonText()}</span>
                 </div>
               ) : (
                 <div className="flex items-center justify-center space-x-2">
