@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AiFillDollarCircle, AiFillRocket, AiOutlineClockCircle, AiOutlineCrown, AiOutlineLogout, AiOutlineRocket, AiOutlineMenu, AiOutlineClose } from 'react-icons/ai'
+import { AiFillDollarCircle, AiFillRocket, AiOutlineClockCircle, AiOutlineCrown, AiOutlineLogout, AiOutlineRocket, AiOutlineClose } from 'react-icons/ai'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 interface SidebarProps {
