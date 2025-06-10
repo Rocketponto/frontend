@@ -8,7 +8,6 @@ import {
 } from "react-icons/ai";
 import { walletService } from "../../hooks/useWallet";
 import { useEffect, useState, useCallback } from "react";
-import React from "react";
 import { useToast } from "../Toast/ToastProvider";
 
 interface Solicitacao {
