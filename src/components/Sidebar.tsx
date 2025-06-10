@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { AiFillDollarCircle, AiFillRocket, AiOutlineClockCircle, AiOutlineCrown, AiOutlineLogout, AiOutlineRocket } from 'react-icons/ai'
+import { AiFillDollarCircle, AiFillRocket, AiOutlineClockCircle, AiOutlineCrown, AiOutlineLogout, AiOutlineRocket, AiOutlineMenu, AiOutlineClose } from 'react-icons/ai'
 import { useLocation, useNavigate } from 'react-router-dom'
 
 interface SidebarProps {
@@ -68,10 +68,25 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       } else if (itemName === 'areaDiretor') {
          navigate('/area-diretor')
       }
+      // Fechar sidebar no mobile após navegar
+      if (window.innerWidth < 1024) {
+         toggleSidebar()
+      }
    }
 
    return (
       <>
+         {/* Botão hambúrguer para mobile - sempre visível quando sidebar está fechada */}
+         {!isOpen && (
+            <button
+               onClick={toggleSidebar}
+               className="fixed top-4 left-4 z-50 lg:hidden bg-gray-rocket-700 text-rocket-red-600 p-3 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110"
+            >
+               <AiOutlineRocket className="text-xl" />
+            </button>
+         )}
+
+         {/* Overlay para mobile */}
          {isOpen && (
             <div
                className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
@@ -79,15 +94,25 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
             ></div>
          )}
 
+         {/* Sidebar */}
          <div className={`
-         fixed top-0 left-0 h-screen min-h-screen w-64 bg-gray-rocket-700 text-white transform transition-transform duration-300 z-50 flex flex-col shadow-lg shadow-black/20
-         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-         lg:translate-x-0 lg:relative lg:z-auto lg:sticky lg:top-0
-      `}>
-            {/* Header */}
-            <div className="flex items-center justify-center p-4 flex-shrink-0">
-               <AiOutlineRocket className='text-3xl text-rocket-red-600' />
-               <h2 className="text-3xl font-bold">RocketPonto</h2>
+            fixed top-0 left-0 h-screen min-h-screen w-64 bg-gray-rocket-700 text-white transform transition-transform duration-300 z-50 flex flex-col shadow-lg shadow-black/20
+            ${isOpen ? 'translate-x-0' : '-translate-x-full'}
+            lg:translate-x-0 lg:relative lg:z-auto lg:sticky lg:top-0
+         `}>
+            {/* Header com botão de fechar no mobile */}
+            <div className="flex items-center justify-between p-4 flex-shrink-0">
+               <div className="flex items-center">
+                  <AiOutlineRocket className='text-3xl text-rocket-red-600' />
+                  <h2 className="text-3xl font-bold ml-2">RocketPonto</h2>
+               </div>
+               {/* Botão de fechar apenas no mobile */}
+               <button
+                  onClick={toggleSidebar}
+                  className="lg:hidden text-white hover:text-rocket-red-600 transition-colors"
+               >
+                  <AiOutlineClose className="text-xl" />
+               </button>
             </div>
 
             {/* User Info */}
@@ -107,41 +132,39 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
             <nav className="flex-1 px-4">
                <ul className="space-y-2">
                   <li>
-                     <a
-                        className={`flex gap-1 items-center p-2 rounded transition-colors ${activeItem === 'ponto'
+                     <button
+                        className={`w-full flex gap-1 items-center p-2 rounded transition-colors ${activeItem === 'ponto'
                            ? 'bg-rocket-red-600 text-white'
                            : 'hover:bg-rocket-red-600 hover:text-white'
                            }`}
                         onClick={() => handleItemClick('ponto')}>
                         <AiOutlineClockCircle />
                         Ponto
-                     </a>
+                     </button>
                   </li>
                   <li>
-                     <a
-                        className={`flex gap-1 items-center p-2 rounded transition-colors ${activeItem === 'rocketcoins'
+                     <button
+                        className={`w-full flex gap-1 items-center p-2 rounded transition-colors ${activeItem === 'rocketcoins'
                            ? 'bg-rocket-red-600 text-white'
                            : 'hover:bg-rocket-red-600 hover:text-white'
                            }`}
                         onClick={() => handleItemClick('rocketcoins')}>
                         <AiFillDollarCircle />
                         Rocketcoins
-                     </a>
+                     </button>
                   </li>
-                  {user?.role === 'DIRETOR' ? (
+                  {user?.role === 'DIRETOR' && (
                      <li>
-                        <a
-                           className={`flex gap-1 items-center p-2 rounded transition-colors ${activeItem === 'areaDiretor'
+                        <button
+                           className={`w-full flex gap-1 items-center p-2 rounded transition-colors ${activeItem === 'areaDiretor'
                               ? 'bg-rocket-red-600 text-white'
                               : 'hover:bg-rocket-red-600 hover:text-white'
                               }`}
                            onClick={() => handleItemClick('areaDiretor')}>
                            <AiOutlineCrown />
                            Área do Diretor
-                        </a>
+                        </button>
                      </li>
-                  ) : (
-                     ''
                   )}
                </ul>
             </nav>

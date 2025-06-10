@@ -5,7 +5,7 @@ import RegistrarGasto from '../components/Rocketcoin/RegistroGasto'
 function Rocketcoins() {
    return (
       <div className="p-6 space-y-6">
-         <div className="mb-8">
+         <div className="mb-8 text-center sm:text-left">
             <h1 className="text-3xl font-bold text-white mb-2">
                Rocketcoins
             </h1>

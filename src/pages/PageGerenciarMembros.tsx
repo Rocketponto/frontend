@@ -279,7 +279,7 @@ function GerenciarMembros() {
 
    return (
       <div className="p-6 space-y-6">
-         <div className="flex items-center justify-between">
+         <div className="flex items-center justify-between flex-col sm:flex-row gap-4">
             <div className="flex items-center space-x-4">
                <button
                   onClick={handleBackAreaDiretor}
@@ -289,29 +289,31 @@ function GerenciarMembros() {
                   <AiOutlineArrowLeft className="w-5 h-5" />
                </button>
 
-               <div>
-                  <h1 className="text-3xl font-bold text-white mb-2">
+               <div className="text-center sm:text-left">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">
                      Gerenciar Membros
                   </h1>
-                  <p className="text-gray-300">
+                  <p className="text-gray-300 text-sm sm:text-base">
                      Monitore e gerencie os registros de ponto da equipe
                   </p>
                </div>
             </div>
 
-            <div className="flex space-x-3">
+            {/* Botões responsivos */}
+            <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 w-full sm:w-auto">
                <button
                   onClick={() => openModal('cadastrar')}
-                  className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg"
+                  className="flex items-center justify-center sm:justify-start space-x-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg text-sm sm:text-base"
                   title="Cadastrar novo membro"
                >
                   <AiOutlineUserAdd className="w-4 h-4" />
-                  <span>Novo Membro</span>
+                  <span className="hidden sm:inline">Novo Membro</span>
+                  <span className="sm:hidden">Novo</span>
                </button>
 
                <button
                   onClick={() => openModal('roles')}
-                  className="flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg"
+                  className="flex items-center justify-center sm:justify-start space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg text-sm sm:text-base"
                   title="Gerenciar roles e permissões"
                >
                   <AiOutlineCrown className="w-4 h-4" />
@@ -320,7 +322,7 @@ function GerenciarMembros() {
 
                <button
                   onClick={() => openModal('status')}
-                  className="flex items-center space-x-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg"
+                  className="flex items-center justify-center sm:justify-start space-x-2 bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg text-sm sm:text-base"
                   title="Ativar/Inativar membros"
                >
                   <AiOutlineUserDelete className="w-4 h-4" />
