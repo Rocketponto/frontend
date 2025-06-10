@@ -1,6 +1,7 @@
-// src/contexts/ToastContext.tsx
+// src/components/Toast/ToastProvider.tsx
+
 import { createContext, useContext, useState, type ReactNode } from 'react'
-import Toast, { type ToastType } from '../Toast/Toast'
+import Toast from '../Toast/Toast'
 import type { ToastProps } from '../Toast/Toast'
 
 interface ToastContextType {
@@ -72,6 +73,7 @@ export function ToastProvider({ children }: ToastProviderProps) {
   )
 }
 
+// ✅ CORRIGIR: Separar hook em outro arquivo para resolver warning do Fast Refresh
 export function useToast() {
   const context = useContext(ToastContext)
   if (context === undefined) {

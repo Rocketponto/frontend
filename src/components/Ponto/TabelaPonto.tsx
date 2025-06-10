@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { AiOutlineCheck, AiOutlineClose, AiOutlineClockCircle, AiOutlineCalendar, AiOutlineLoading3Quarters, AiOutlineReload } from 'react-icons/ai'
 import { pontoService } from '../../hooks/usePointRecord'
 
@@ -25,22 +25,25 @@ function TabelaPonto() {
       itensPorPagina: 10
    })
 
-   const [resumo, setResumo] = useState({
-      totalRecords: 0,
-      recordsInProgress: 0,
-      recordsApproved: 0
-   })
+   // ✅ CORRIGIR: Remover estado não usado ou implementar sua funcionalidade
+   // Se não for usar o resumo, remova completamente
+   // Se for usar, adicione onde necessário na UI
+   // const [resumo, setResumo] = useState({
+   //    totalRecords: 0,
+   //    recordsInProgress: 0,
+   //    recordsApproved: 0
+   // })
 
-   useEffect(() => {
-      buscarHistorico()
-   }, [paginacao.paginaAtual])
-
-   const buscarHistorico = async () => {
+   // ✅ CORRIGIR: useCallback para evitar warning de dependência
+   const buscarHistorico = useCallback(async () => {
       try {
          setLoading(true)
          setErro('')
 
-         const response = await pontoService.buscarHistoricoPontos({
+         const user = localStorage.getItem('user')
+         const userData = user ? JSON.parse(user) : null
+
+         const response = await pontoService.buscarHistoricoPonto( userData.id,{
             page: paginacao.paginaAtual,
             limit: paginacao.itensPorPagina
          })
@@ -101,17 +104,29 @@ function TabelaPonto() {
                })
             }
 
-            if (response.summary) {
-               setResumo(response.summary)
-            }
+            // ✅ CORRIGIR: Se quiser usar o resumo, descomente e implemente na UI
+            // if (response.summary) {
+            //    setResumo(response.summary)
+            // }
          }
-      } catch (error: any) {
-         setErro(error.message)
+      } catch (error) { // ✅ CORRIGIR: Remover 'any'
          console.error('Erro ao buscar histórico:', error)
+
+         // ✅ TRATAMENTO adequado do erro
+         const errorMessage = error instanceof Error
+            ? error.message
+            : 'Erro ao buscar histórico de pontos'
+
+         setErro(errorMessage)
       } finally {
          setLoading(false)
       }
-   }
+   }, [paginacao.paginaAtual, paginacao.itensPorPagina]) // ✅ ADICIONAR dependências necessárias
+
+   // ✅ CORRIGIR: Incluir buscarHistorico nas dependências
+   useEffect(() => {
+      buscarHistorico()
+   }, [buscarHistorico])
 
    const getStatusIcon = (status: string) => {
       switch (status) {
@@ -284,6 +299,7 @@ function TabelaPonto() {
                   </table>
                </div>
 
+               {/* Cards de Estatísticas */}
                <div className="mt-6 grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="bg-green-600/10 border border-green-500/30 rounded-lg p-4">
                      <div className="text-green-400 text-sm font-medium">Aprovados</div>

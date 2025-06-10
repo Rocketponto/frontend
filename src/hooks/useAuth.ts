@@ -1,4 +1,5 @@
 import api from '../services/api'
+import { AxiosError } from 'axios'
 
 interface LoginData {
   email: string
@@ -34,13 +35,40 @@ interface Membro {
   updated_at: string
 }
 
+// ✅ Interface para respostas de erro da API
+interface ApiErrorResponse {
+  message: string
+  error?: string
+  statusCode?: number
+}
+
+// ✅ Interface para resposta de buscar membros
+interface BuscarMembrosResponse {
+  success: boolean
+  data: Membro[]
+  pagination?: {
+    currentPage: number
+    totalPages: number
+    totalItems: number
+    itemsPerPage: number
+  }
+}
+
 export const authService = {
   login: async (data: LoginData): Promise<LoginResponse> => {
     try {
       const response = await api.post('/auth/login', data)
       return response.data
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Erro ao fazer login')
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro no login:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao fazer login')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
@@ -69,8 +97,16 @@ export const authService = {
     try {
       const response = await api.get('/auth/get-users-active')
       return response.data
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Erro ao buscar membros')
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao buscar membros ativos:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao buscar membros')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
@@ -78,8 +114,16 @@ export const authService = {
     try {
       await api.post('/auth/register', data)
       return { success: true }
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Erro ao cadastrar membro')
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao cadastrar membro:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao cadastrar membro')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
@@ -89,8 +133,16 @@ export const authService = {
         role: role
       })
       return { success: true }
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Erro ao atualizar cargo do membro')
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao atualizar role do usuário:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao atualizar cargo do membro')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
@@ -100,24 +152,23 @@ export const authService = {
         status: status
       })
       return { success: true }
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Erro ao atualizar cargo do membro')
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao atualizar status do usuário:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao atualizar status do membro')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
   buscarMembros: async (params?: {
     page?: number
     limit?: number
-  }): Promise<{
-    success: boolean
-    data: any[]
-    pagination?: {
-      currentPage: number
-      totalPages: number
-      totalItems: number
-      itemsPerPage: number
-    }
-  }> => {
+  }): Promise<BuscarMembrosResponse> => { // ✅ CORRIGIR: Remover 'any' do retorno
     try {
       const queryParams = new URLSearchParams()
 
@@ -126,8 +177,16 @@ export const authService = {
 
       const response = await api.get(`/auth/get-all-users${queryParams.toString() ? `?${queryParams.toString()}` : ''}`)
       return response.data
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Erro ao buscar membros')
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao buscar todos os membros:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao buscar membros')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 }

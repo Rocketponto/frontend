@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
    AiOutlineBarChart,
-   AiOutlineCalendar,
    AiOutlineDownload,
    AiOutlineDollarCircle,
    AiOutlineLoading3Quarters,
@@ -10,15 +9,6 @@ import {
    AiOutlineEye
 } from 'react-icons/ai'
 import { walletService } from '../../hooks/useWallet'
-
-interface EstatisticasDetalhadas {
-   totalUsuarios: number
-   totalDistribuido: number
-   totalRecebido: number
-   mediaPortUsuario: number
-   transacoesHoje: number
-   transacoesMes: number
-}
 
 interface TransacaoRelatorio {
    id: number
@@ -39,9 +29,7 @@ interface TransacaoRelatorio {
 }
 
 function RelatorioRocketcoins() {
-
    const [transacoes, setTransacoes] = useState<TransacaoRelatorio[]>([])
-   const [carregando, setCarregando] = useState(true)
    const [carregandoTransacoes, setCarregandoTransacoes] = useState(false)
    const [dataInicio, setDataInicio] = useState('')
    const [dataFim, setDataFim] = useState('')
@@ -52,22 +40,7 @@ function RelatorioRocketcoins() {
       totalItens: 0
    })
 
-   useEffect(() => {
-
-      const hoje = new Date()
-      const umMesAtras = new Date(hoje.getFullYear(), hoje.getMonth() - 1, hoje.getDate())
-
-      setDataFim(hoje.toISOString().split('T')[0])
-      setDataInicio(umMesAtras.toISOString().split('T')[0])
-   }, [])
-
-   useEffect(() => {
-      if (dataInicio && dataFim) {
-         buscarTransacoes()
-      }
-   }, [dataInicio, dataFim, tipoFiltro, paginacao.paginaAtual])
-
-   const buscarTransacoes = async (pagina: number = 1) => {
+   const buscarTransacoes = useCallback(async (pagina: number = 1) => {
       try {
          setCarregandoTransacoes(true)
 
@@ -95,7 +68,21 @@ function RelatorioRocketcoins() {
       } finally {
          setCarregandoTransacoes(false)
       }
-   }
+   }, [dataInicio, dataFim, tipoFiltro])
+
+   useEffect(() => {
+      const hoje = new Date()
+      const umMesAtras = new Date(hoje.getFullYear(), hoje.getMonth() - 1, hoje.getDate())
+
+      setDataFim(hoje.toISOString().split('T')[0])
+      setDataInicio(umMesAtras.toISOString().split('T')[0])
+   }, [])
+
+   useEffect(() => {
+      if (dataInicio && dataFim) {
+         buscarTransacoes()
+      }
+   }, [dataInicio, dataFim, tipoFiltro, paginacao.paginaAtual, buscarTransacoes])
 
    const exportarRelatorio = async () => {
       try {
@@ -125,9 +112,14 @@ function RelatorioRocketcoins() {
          } else {
             throw new Error('Não foi possível exportar o relatório')
          }
-      } catch (error: any) {
+      } catch (error) {
          console.error('Erro ao exportar relatório:', error)
-         alert(`Erro ao exportar relatório: ${error.message}`)
+
+         const errorMessage = error instanceof Error
+            ? error.message
+            : 'Erro desconhecido ao exportar relatório'
+
+         alert(`Erro ao exportar relatório: ${errorMessage}`)
       } finally {
          setCarregandoTransacoes(false)
       }
@@ -195,7 +187,7 @@ function RelatorioRocketcoins() {
                </label>
                <select
                   value={tipoFiltro}
-                  onChange={(e) => setTipoFiltro(e.target.value as any)}
+                  onChange={(e) => setTipoFiltro(e.target.value as 'todos' | 'CREDIT' | 'DEBIT')}
                   className="w-full bg-gray-rocket-700 text-white rounded-lg px-3 py-2 border border-gray-600 focus:border-blue-500 focus:outline-none"
                >
                   <option value="todos">Todas</option>

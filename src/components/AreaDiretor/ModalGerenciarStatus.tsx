@@ -11,6 +11,16 @@ interface Usuario {
    created_at: string
 }
 
+// ✅ ADICIONAR: Interface para resposta da API
+interface UsuarioResponse {
+   id: string | number
+   name: string
+   email: string
+   role: string
+   isActive?: boolean
+   created_at: string
+}
+
 interface ModalGerenciarStatusProps {
    onClose: () => void
    onSuccess?: () => void
@@ -35,11 +45,8 @@ function ModalGerenciarStatus({ onClose, onSuccess }: ModalGerenciarStatusProps)
 
    const scrollContainerRef = useRef<HTMLDivElement>(null)
 
-   useEffect(() => {
-      buscarUsuarios(1, true)
-   }, [])
-
-   const buscarUsuarios = async (pagina: number = 1, reset: boolean = false) => {
+   // ✅ CORRIGIR: useCallback para evitar warning de dependência
+   const buscarUsuarios = useCallback(async (pagina: number = 1, reset: boolean = false) => {
       try {
          if (reset) {
             setLoading(true)
@@ -56,8 +63,9 @@ function ModalGerenciarStatus({ onClose, onSuccess }: ModalGerenciarStatusProps)
          })
 
          if (response.success && response.data) {
-            const usuariosFormatados = response.data.map((user: any) => ({
-               id: user.id,
+            // ✅ CORRIGIR: Tipar adequadamente removendo 'any'
+            const usuariosFormatados = response.data.map((user: UsuarioResponse) => ({
+               id: String(user.id), // Garantir que seja string
                name: user.name,
                email: user.email,
                role: user.role as 'MEMBRO' | 'DIRETOR',
@@ -83,15 +91,27 @@ function ModalGerenciarStatus({ onClose, onSuccess }: ModalGerenciarStatusProps)
                setPaginacao(prev => ({ ...prev, hasMore: false }))
             }
          }
-      } catch (error: any) {
-         setErro(error.message || 'Erro ao buscar usuários')
+      } catch (error) { // ✅ CORRIGIR: Remover 'any'
+         console.error('Erro ao buscar usuários:', error)
+
+         const errorMessage = error instanceof Error
+            ? error.message
+            : 'Erro ao buscar usuários'
+
+         setErro(errorMessage)
          setPaginacao(prev => ({ ...prev, hasMore: false }))
       } finally {
          setLoading(false)
          setLoadingMore(false)
       }
-   }
+   }, [paginacao.itensPorPagina]) // ✅ ADICIONAR dependência necessária
 
+   // ✅ CORRIGIR: Incluir buscarUsuarios nas dependências
+   useEffect(() => {
+      buscarUsuarios(1, true)
+   }, [buscarUsuarios])
+
+   // ✅ CORRIGIR: useCallback com dependências adequadas
    const handleScroll = useCallback(() => {
       if (!scrollContainerRef.current || loadingMore || !paginacao.hasMore) return
 
@@ -100,7 +120,7 @@ function ModalGerenciarStatus({ onClose, onSuccess }: ModalGerenciarStatusProps)
       if (scrollHeight - scrollTop - clientHeight < 200) {
          buscarUsuarios(paginacao.paginaAtual + 1, false)
       }
-   }, [loadingMore, paginacao.hasMore, paginacao.paginaAtual])
+   }, [loadingMore, paginacao.hasMore, paginacao.paginaAtual, buscarUsuarios])
 
    useEffect(() => {
       const container = scrollContainerRef.current
@@ -124,8 +144,14 @@ function ModalGerenciarStatus({ onClose, onSuccess }: ModalGerenciarStatusProps)
          )
 
          onSuccess?.()
-      } catch (error: any) {
-         setErro(error.message || 'Erro ao alterar status')
+      } catch (error) { // ✅ CORRIGIR: Remover 'any'
+         console.error('Erro ao alterar status:', error)
+
+         const errorMessage = error instanceof Error
+            ? error.message
+            : 'Erro ao alterar status'
+
+         setErro(errorMessage)
       } finally {
          setProcessando(null)
       }
@@ -184,9 +210,10 @@ function ModalGerenciarStatus({ onClose, onSuccess }: ModalGerenciarStatusProps)
                      />
                   </div>
 
+                  {/* ✅ CORRIGIR: Remover 'as any' e tipar adequadamente */}
                   <select
                      value={filtroStatus}
-                     onChange={(e) => setFiltroStatus(e.target.value as any)}
+                     onChange={(e) => setFiltroStatus(e.target.value as 'todos' | 'ativo' | 'inativo')}
                      className="bg-gray-rocket-700 text-white rounded-lg px-4 py-3 border border-gray-600 focus:border-rocket-red-700 focus:ring-2 focus:ring-rocket-red-700/20 focus:outline-none"
                   >
                      <option value="todos">Todos os status</option>

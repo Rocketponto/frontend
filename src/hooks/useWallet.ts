@@ -1,11 +1,14 @@
 import api from '../services/api'
+import { AxiosError } from 'axios'
 
 interface Transaction {
   id: string
-  type: 'EARNED' | 'SPENT'
+  type: 'EARNED' | 'SPENT' | 'CREDIT' | 'DEBIT'
   amount: string
+  title: string
   description: string
   createdAt: string
+  data: string
 }
 
 interface User {
@@ -28,10 +31,48 @@ interface Wallet {
   transactions: Transaction[]
 }
 
+// ✅ Interface específica para respostas de erro da API
+interface ApiErrorResponse {
+  message: string
+  error?: string
+  statusCode?: number
+}
+
+// ✅ Interface para histórico de transações
+interface HistoricoTransacoesResponse {
+  wallet: {
+    totalEarned: number
+    totalSpent: number
+  }
+  transactions: Transaction[]
+  success: boolean
+  pagination?: {
+    itemsPerPage: number
+    currentPage: number
+    totalPages: number
+    totalItems: number
+    limit: number
+  }
+}
+
+// ✅ Interface para minhas solicitações pendentes
+interface MinhasSolicitacoesPendentesResponse {
+  summary: number
+  requests: WalletRequest[]
+  success: boolean
+  pagination?: {
+    itemsPerPage: number
+    currentPage: number
+    totalPages: number
+    totalItems: number
+    limit: number
+  }
+}
+
 interface ReportResponse {
   transacoes: never[]
   success: boolean
-  transactions: any[]
+  transactions: Transaction[]
   pagination?: {
     currentPage: number
     totalPages: number
@@ -103,8 +144,15 @@ interface RequestsResponse {
   }
 }
 
-export const walletService = {
+// ✅ Interface para resposta de transações com wallet
+interface TransactionWalletResponse {
+  success: boolean
+  message?: string
+  transaction?: WalletRequest
+  wallet?: Wallet
+}
 
+export const walletService = {
   buscarCarteira: async (): Promise<WalletResponse> => {
     try {
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
@@ -116,9 +164,16 @@ export const walletService = {
 
       const response = await api.get(`/wallet/get-wallet/${id}`)
       return response.data
-    } catch (error: any) {
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
       console.error('Erro ao buscar carteira:', error)
-      throw new Error(error.response?.data?.message || 'Erro ao buscar carteira')
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao buscar carteira')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
@@ -126,9 +181,16 @@ export const walletService = {
     try {
       const response = await api.get(`/wallet/get-wallet-user/${id}`)
       return response.data
-    } catch (error: any) {
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
       console.error('Erro ao buscar carteira:', error)
-      throw new Error(error.response?.data?.message || 'Erro ao buscar carteira')
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao buscar carteira')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
@@ -139,8 +201,16 @@ export const walletService = {
         description
       })
       return response.data
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Erro ao adicionar saldo')
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao adicionar saldo:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao adicionar saldo')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
@@ -152,8 +222,16 @@ export const walletService = {
         description
       })
       return response.data
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Erro ao gastar saldo')
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao gastar saldo:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao gastar saldo')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
@@ -165,8 +243,16 @@ export const walletService = {
 
       const response = await api.get(`/wallet/transactions/${id}`)
       return response.data
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Erro ao buscar transações')
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao buscar transações:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao buscar transações')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
@@ -182,23 +268,21 @@ export const walletService = {
         reference
       })
       return response.data
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Erro ao aprovar transação')
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao solicitar transação:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao aprovar transação')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
-  buscarMinhasSolicitaçõesPendentes: async (params?: { page?: number, limit?: number }): Promise<{
-    summary: any
-    requests: any,
-    success: true,
-    pagination?: {
-      itemsPerPage: number
-      currentPage: number
-      totalPages: number
-      totalItems: number
-      limit: number
-    }
-  }> => {
+  // ✅ CORRIGIR: Remover 'any' dos tipos de retorno
+  buscarMinhasSolicitaçõesPendentes: async (params?: { page?: number, limit?: number }): Promise<MinhasSolicitacoesPendentesResponse> => {
     try {
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
       const id = currentUser.id
@@ -207,27 +291,24 @@ export const walletService = {
 
       if (params?.page) queryParams.append('page', params.page.toString())
       if (params?.limit) queryParams.append('limit', params.limit.toString())
-
 
       const response = await api.get(`/wallet/my-requests/${id}?${queryParams.toString()}`)
       return response.data
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Erro ao buscar solicitações')
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao buscar solicitações:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao buscar solicitações')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
-  buscarHistoricoTransacoes: async (params?: { page?: number, limit?: number }): Promise<{
-    wallet: any
-    transactions: any,
-    success: true,
-    pagination?: {
-      itemsPerPage: number
-      currentPage: number
-      totalPages: number
-      totalItems: number
-      limit: number
-    }
-  }> => {
+  // ✅ CORRIGIR: Remover 'any' dos tipos de retorno
+  buscarHistoricoTransacoes: async (params?: { page?: number, limit?: number }): Promise<HistoricoTransacoesResponse> => {
     try {
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
       const id = currentUser.id
@@ -237,11 +318,18 @@ export const walletService = {
       if (params?.page) queryParams.append('page', params.page.toString())
       if (params?.limit) queryParams.append('limit', params.limit.toString())
 
-
       const response = await api.get(`/wallet/my-history-transactions/${id}?${queryParams.toString()}`)
       return response.data
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Erro ao buscar histórico')
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao buscar histórico:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao buscar histórico')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
@@ -257,17 +345,21 @@ export const walletService = {
 
       const response = await api.get(`/wallet/pending-requests?${queryParams.toString()}`)
       return response.data
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Erro ao buscar todas as solicitações')
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao buscar todas as solicitações:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao buscar todas as solicitações')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
-  aprovarSolicitacao: async (transactionId: number): Promise<{
-    success: boolean
-    message?: string
-    transaction?: any
-    wallet?: any
-  }> => {
+  // ✅ CORRIGIR: Remover 'any' dos tipos de retorno
+  aprovarSolicitacao: async (transactionId: number): Promise<TransactionWalletResponse> => {
     try {
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
       const directorId = currentUser.id
@@ -276,15 +368,23 @@ export const walletService = {
         directorId
       })
       return response.data
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Erro ao aprovar solicitação')
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao aprovar solicitação:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao aprovar solicitação')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
   rejeitarSolicitacao: async (transactionId: number, rejectionReason: string): Promise<{
     success: boolean
     message?: string
-    transaction?: any
+    transaction?: WalletRequest
     reason?: string
   }> => {
     try {
@@ -296,23 +396,27 @@ export const walletService = {
         rejectionReason
       })
       return response.data
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Erro ao rejeitar solicitação')
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao rejeitar solicitação:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao rejeitar solicitação')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
+  // ✅ CORRIGIR: Remover 'any' dos tipos de retorno
   adicionarRocketcoins: async (params: {
     userId: number
     amount: number
     title: string
     description: string
     reference?: string
-  }): Promise<{
-    success: boolean
-    message?: string
-    transaction?: any
-    wallet?: any
-  }> => {
+  }): Promise<TransactionWalletResponse> => {
     try {
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
       const directorId = currentUser.id
@@ -326,23 +430,27 @@ export const walletService = {
         processedBy: directorId
       })
       return response.data
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Erro ao adicionar rocketcoins')
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao adicionar rocketcoins:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao adicionar rocketcoins')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
+  // ✅ CORRIGIR: Remover 'any' dos tipos de retorno
   removerRocketcoins: async (params: {
     userId: number
     amount: number
     title: string
     description: string
     reference?: string
-  }): Promise<{
-    success: boolean
-    message?: string
-    transaction?: any
-    wallet?: any
-  }> => {
+  }): Promise<TransactionWalletResponse> => {
     try {
       const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
       const directorId = currentUser.id
@@ -356,8 +464,16 @@ export const walletService = {
         processedBy: directorId
       })
       return response.data
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Erro ao remover rocketcoins')
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao remover rocketcoins:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao remover rocketcoins')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
@@ -365,8 +481,16 @@ export const walletService = {
     try {
       const response = await api.get('/wallet/dashboard-statistics')
       return response.data
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Erro ao buscar estatísticas do dashboard')
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao buscar estatísticas do dashboard:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao buscar estatísticas do dashboard')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
@@ -388,8 +512,16 @@ export const walletService = {
 
       const response = await api.get(`/wallet/transactions-report?${queryParams.toString()}`)
       return response.data
-    } catch (error: any) {
-      throw new Error(error.response?.data?.message || 'Erro ao buscar relatório de transações')
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao buscar relatório de transações:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response) {
+        const errorData = error.response.data as ApiErrorResponse
+        throw new Error(errorData.message || 'Erro ao buscar relatório de transações')
+      }
+
+      throw new Error('Erro de conexão. Tente novamente.')
     }
   },
 
@@ -419,18 +551,22 @@ export const walletService = {
         data: response.data,
         filename: `relatorio-rocketcoins-${params.dataInicio || 'inicio'}-${params.dataFim || 'fim'}.csv`
       }
-    } catch (error: any) {
-      if (error.response?.data) {
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao exportar relatório:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      if (error instanceof AxiosError && error.response?.data) {
         try {
           const errorData = typeof error.response.data === 'string'
             ? JSON.parse(error.response.data)
             : error.response.data
 
           throw new Error(errorData.error || 'Erro ao exportar relatório')
-        } catch (parseError) {
+        } catch { // ✅ CORRIGIR: Remover variável não usada 'parseError'
           throw new Error(error.response.data || 'Erro ao exportar relatório')
         }
       }
+
       throw new Error('Erro ao exportar relatório')
     }
   },

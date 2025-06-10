@@ -1,4 +1,5 @@
 import api from '../services/api'
+import { AxiosError } from 'axios'
 
 interface RegistrarPontoData {
    description: string
@@ -51,6 +52,34 @@ interface HistoricoPontoResponse {
       recordsInProgress: number
       recordsApproved: number
    }
+}
+
+// ✅ Interface para resposta de buscar registros do dia
+interface RegistrosDiaResponse {
+   success: boolean
+   lastPointRecord?: {
+      id: string
+      userId: string
+      entryDateHour: string | null
+      exitDateHour: string | null
+      pointRecordStatus: 'APPROVED' | 'PENDING' | 'REJECTED' | 'IN_PROGRESS'
+      description: string
+      workingHours?: {
+         hours: number
+         minutes: number
+         totalHours: number
+      }
+      createdAt: string
+      updatedAt: string
+   }
+   message?: string
+}
+
+// ✅ Interface para respostas de erro da API
+interface ApiErrorResponse {
+   message: string
+   error?: string
+   statusCode?: number
 }
 
 interface Membro {
@@ -109,8 +138,16 @@ export const pontoService = {
       try {
          const response = await api.post('/pointRecord', data)
          return response.data
-      } catch (error: any) {
-         throw new Error(error.response?.data?.message || 'Erro ao registrar ponto')
+      } catch (error) { // ✅ CORRIGIR: Remover 'any'
+         console.error('Erro ao registrar ponto:', error)
+
+         // ✅ TRATAMENTO adequado do erro
+         if (error instanceof AxiosError && error.response) {
+            const errorData = error.response.data as ApiErrorResponse
+            throw new Error(errorData.message || 'Erro ao registrar ponto')
+         }
+
+         throw new Error('Erro de conexão. Tente novamente.')
       }
    },
 
@@ -124,13 +161,9 @@ export const pontoService = {
       }
    },
 
-   buscarHistoricoPontos: async (filtros: FiltrosHistorico = {}): Promise<HistoricoPontoResponse> => {
+   buscarHistoricoPonto: async (userId: number, filtros: FiltrosHistorico = {}): Promise<HistoricoPontoResponse> => {
       try {
          const params = new URLSearchParams()
-
-         const user = localStorage.getItem('user')
-         const userData = user ? JSON.parse(user) : null
-         const userId = parseInt(userData.id)
 
          if (filtros.page) params.append('page', filtros.page.toString())
          if (filtros.limit) params.append('limit', filtros.limit.toString())
@@ -140,17 +173,33 @@ export const pontoService = {
 
          const response = await api.get(endpoint)
          return response.data
-      } catch (error: any) {
-         throw new Error(error.response?.data?.message || 'Erro ao buscar registros')
+      } catch (error) { // ✅ CORRIGIR: Remover 'any'
+         console.error('Erro ao buscar histórico de pontos:', error)
+
+         // ✅ TRATAMENTO adequado do erro
+         if (error instanceof AxiosError && error.response) {
+            const errorData = error.response.data as ApiErrorResponse
+            throw new Error(errorData.message || 'Erro ao buscar registros')
+         }
+
+         throw new Error('Erro de conexão. Tente novamente.')
       }
    },
 
-   buscarRegistrosDia: async (userId: number): Promise<any> => {
+   buscarRegistrosDia: async (userId: number): Promise<RegistrosDiaResponse> => { // ✅ CORRIGIR: Remover 'any' do retorno
       try {
          const response = await api.get(`/pointRecord/get-last-point/${userId}`)
          return response.data
-      } catch (error: any) {
-         throw new Error(error.response?.data?.message || 'Erro ao buscar registros')
+      } catch (error) { // ✅ CORRIGIR: Remover 'any'
+         console.error('Erro ao buscar registros do dia:', error)
+
+         // ✅ TRATAMENTO adequado do erro
+         if (error instanceof AxiosError && error.response) {
+            const errorData = error.response.data as ApiErrorResponse
+            throw new Error(errorData.message || 'Erro ao buscar registros')
+         }
+
+         throw new Error('Erro de conexão. Tente novamente.')
       }
    },
 
@@ -166,8 +215,16 @@ export const pontoService = {
 
          const response = await api.get(`/pointRecord/all?${params.toString()}`)
          return response.data
-      } catch (error: any) {
-         throw new Error(error.response?.data?.message || 'Erro ao buscar pontos')
+      } catch (error) { // ✅ CORRIGIR: Remover 'any'
+         console.error('Erro ao buscar pontos dos membros:', error)
+
+         // ✅ TRATAMENTO adequado do erro
+         if (error instanceof AxiosError && error.response) {
+            const errorData = error.response.data as ApiErrorResponse
+            throw new Error(errorData.message || 'Erro ao buscar pontos')
+         }
+
+         throw new Error('Erro de conexão. Tente novamente.')
       }
    },
 
@@ -176,8 +233,16 @@ export const pontoService = {
       try {
          const response = await api.patch(`/pointRecord/${pontoId}/approve`)
          return response.data
-      } catch (error: any) {
-         throw new Error(error.response?.data?.message || 'Erro ao aprovar ponto')
+      } catch (error) { // ✅ CORRIGIR: Remover 'any'
+         console.error('Erro ao aprovar ponto:', error)
+
+         // ✅ TRATAMENTO adequado do erro
+         if (error instanceof AxiosError && error.response) {
+            const errorData = error.response.data as ApiErrorResponse
+            throw new Error(errorData.message || 'Erro ao aprovar ponto')
+         }
+
+         throw new Error('Erro de conexão. Tente novamente.')
       }
    },
 
@@ -186,8 +251,16 @@ export const pontoService = {
       try {
          const response = await api.patch(`/pointRecord/${pontoId}/reject`)
          return response.data
-      } catch (error: any) {
-         throw new Error(error.response?.data?.message || 'Erro ao rejeitar ponto')
+      } catch (error) { // ✅ CORRIGIR: Remover 'any'
+         console.error('Erro ao rejeitar ponto:', error)
+
+         // ✅ TRATAMENTO adequado do erro
+         if (error instanceof AxiosError && error.response) {
+            const errorData = error.response.data as ApiErrorResponse
+            throw new Error(errorData.message || 'Erro ao rejeitar ponto')
+         }
+
+         throw new Error('Erro de conexão. Tente novamente.')
       }
    }
 }

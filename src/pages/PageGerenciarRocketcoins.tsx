@@ -2,24 +2,20 @@ import { useState, useEffect, type JSX } from "react";
 import {
   AiOutlinePlus,
   AiOutlineMinus,
-  AiOutlineUser,
   AiOutlineTeam,
   AiOutlineClockCircle,
-  AiOutlineCheckCircle,
-  AiOutlineCloseCircle,
   AiOutlineBarChart,
   AiOutlineFileText,
   AiOutlineDollarCircle,
   AiOutlineArrowLeft,
 } from "react-icons/ai";
-import { FaCoins } from "react-icons/fa";
 import SolicitacoesPendentes from "../components/AreaDiretor/SolicitacoesPendentes";
 import AdicionarRocketcoins from "../components/AreaDiretor/AdicionarRocketcoins";
 import RemoverRocketcoins from "../components/AreaDiretor/RemoverRocketcoins";
 import RelatorioRocketcoins from "../components/AreaDiretor/RelatorioRocketcoins";
 import { walletService } from "../hooks/useWallet";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "../components/Toast/ToastProvider";
+//import { useToast } from "../components/Toast/ToastProvider";
 
 interface TabOption {
   id: string;

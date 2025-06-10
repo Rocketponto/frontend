@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { AiOutlineLogin, AiOutlineLogout, AiOutlineClose, AiOutlineCheck } from 'react-icons/ai'
 import { pontoService } from '../../hooks/usePointRecord'
 import { useToast } from '../../components/Toast/ToastProvider'
@@ -30,11 +30,8 @@ function BaterPonto() {
     localStorage.setItem(`pontoStatus_${hoje}`, JSON.stringify(status))
   }
 
-  useEffect(() => {
-    buscarStatusReal()
-  }, [])
-
-  const buscarStatusReal = async () => {
+  // ✅ CORRIGIR: useCallback para evitar warning de dependência
+  const buscarStatusReal = useCallback(async () => {
     try {
       setCarregandoStatus(true)
 
@@ -105,7 +102,12 @@ function BaterPonto() {
     } finally {
       setCarregandoStatus(false)
     }
-  }
+  }, []) // ✅ SEM dependências, pois não usa nenhum estado ou prop
+
+  // ✅ CORRIGIR: Incluir buscarStatusReal nas dependências
+  useEffect(() => {
+    buscarStatusReal()
+  }, [buscarStatusReal])
 
   const revalidarStatus = async () => {
     await buscarStatusReal()
@@ -137,8 +139,15 @@ function BaterPonto() {
 
         await revalidarStatus()
       }
-    } catch (error: any) {
-      setErro(error.message)
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao registrar entrada:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Erro ao registrar entrada'
+
+      setErro(errorMessage)
       showError('Erro ao bater ponto!', 'Erro no processamento de bater ponto.')
       setPontoStatus(prev => ({ ...prev, loading: false }))
     }
@@ -165,8 +174,15 @@ function BaterPonto() {
 
         setDescription('')
       }
-    } catch (error: any) {
-      setErro(error.message)
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao registrar saída:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Erro ao registrar saída'
+
+      setErro(errorMessage)
       showError('Erro ao bater ponto!', 'Erro ao processar ponto.')
       setPontoStatus(prev => ({ ...prev, loading: false }))
       setShowDescriptionModal(true)

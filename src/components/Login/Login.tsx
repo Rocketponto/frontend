@@ -57,18 +57,28 @@ function Login() {
          } else {
             showError('Erro no login', 'Resposta inválida do servidor.')
          }
-      } catch (error: any) {
-         if (error.message?.includes('401') || error.message?.includes('Unauthorized')) {
+      } catch (error) {
+         console.error('Erro no login:', error)
+
+         let errorMessage = 'Algo deu errado. Tente novamente em alguns instantes.'
+
+         if (error instanceof Error) {
+            errorMessage = error.message
+         } else if (typeof error === 'string') {
+            errorMessage = error
+         }
+
+         if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
             showError(
                'Credenciais inválidas',
                'Email ou senha incorretos. Verifique seus dados e tente novamente.'
             )
-         } else if (error.message?.includes('network') || error.message?.includes('Network')) {
+         } else if (errorMessage.includes('network') || errorMessage.includes('Network')) {
             showError(
                'Erro de conexão',
                'Verifique sua conexão com a internet e tente novamente.'
             )
-         } else if (error.message?.includes('timeout')) {
+         } else if (errorMessage.includes('timeout')) {
             showWarning(
                'Tempo esgotado',
                'O servidor demorou para responder. Tente novamente.'
@@ -76,7 +86,7 @@ function Login() {
          } else {
             showError(
                'Erro inesperado',
-               error.message || 'Algo deu errado. Tente novamente em alguns instantes.'
+               errorMessage
             )
          }
       } finally {

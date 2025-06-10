@@ -1,19 +1,9 @@
-import { useState } from 'react'
 import RelogioData from '../components/Ponto/RelogioData'
 import BaterPonto from '../components/Ponto/BaterPonto'
 import TabelaPonto from '../components/Ponto/TabelaPonto'
 
 
 function Ponto() {
-   const [pontoData, setPontoData] = useState({
-      entrada: null,
-      saidaAlmoco: null,
-      retornoAlmoco: null,
-      saida: null,
-      horasTrabalhadas: '00:00',
-      status: 'Não iniciado'
-   })
-
    return (
       <div className="p-6 space-y-6">
          {/* Header da página */}

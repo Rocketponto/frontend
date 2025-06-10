@@ -65,9 +65,10 @@ function ModalCadastrarMembro({ onClose, onSuccess }: ModalCadastrarMembroProps)
          onSuccess?.()
          showSuccess('Usuário cadastrado!', 'Sucesso ao cadastrar novo usuário.')
          onClose()
-      } catch (error: any) {
+      } catch (error) {
+         console.error(error)
          showError('Erro ao cadastrar usuário!', 'Erro no processamento de cadastrar novo usuário.')
-         setErro(error.message || 'Erro ao cadastrar membro')
+         setErro('Erro ao cadastrar membro')
       } finally {
          setLoading(false)
       }

@@ -10,6 +10,13 @@ import { walletService } from "../../hooks/useWallet";
 import { AuxiliaryFunctions } from "../../utils/AuxiliaryFunctions";
 import { useToast } from "../Toast/ToastProvider";
 
+// ✅ CORRIGIR: Interface com tipagem adequada
+interface Processor {
+  id: string | number;
+  name: string;
+  email: string;
+}
+
 interface Solicitacao {
   id: number;
   walletId: number;
@@ -24,7 +31,7 @@ interface Solicitacao {
   balanceAfter: string;
   createdAt: string;
   updatedAt: string;
-  processor: any | null;
+  processor?: Processor | null;
 }
 
 function RegistrarGasto() {
@@ -79,9 +86,16 @@ function RegistrarGasto() {
       setFormulario({ titulo: "", descricao: "", valor: "" });
       setMostrarFormulario(false);
       await fetchSolicitacoesPendentes(1, paginacao.itensPorPagina);
-    } catch (error: any) {
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao solicitar transação:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Saldo insuficiente ou erro na transação'
+
       showError('Erro ao solicitar', 'Erro no processamento de solicitar novo gasto.')
-      setErro(error.message || "Saldo insuficiente ou erro na transação");
+      setErro(errorMessage);
     } finally {
       setSalvando(false);
     }
@@ -109,7 +123,7 @@ function RegistrarGasto() {
         setTotal(totalGastoSolicitacoes);
 
         const solicitacoes = response.requests || [];
-        setSolicitacoes(solicitacoes);
+        setSolicitacoes(solicitacoes as Solicitacao[]);
 
         if (response.pagination) {
           setPaginacao({
@@ -120,8 +134,15 @@ function RegistrarGasto() {
           });
         }
       }
-    } catch (error: any) {
-      setErro(error.message || "Erro ao buscar solicitações de transação.");
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error('Erro ao buscar solicitações:', error)
+
+      // ✅ TRATAMENTO adequado do erro
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Erro ao buscar solicitações de transação.'
+
+      setErro(errorMessage);
       setCarregando(false);
     } finally {
       setCarregando(false);
@@ -354,7 +375,8 @@ function RegistrarGasto() {
                     } else {
                       const meio = Math.floor(5 / 2);
                       let inicio = Math.max(1, paginacao.paginaAtual - meio);
-                      let fim = Math.min(paginacao.totalPaginas, inicio + 4);
+                      // ✅ CORRIGIR: Usar 'const' em vez de 'let' para variável não reatribuída
+                      const fim = Math.min(paginacao.totalPaginas, inicio + 4);
 
                       if (fim - inicio < 4) {
                         inicio = Math.max(1, fim - 4);

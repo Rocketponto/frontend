@@ -117,8 +117,9 @@ function MembrosTable({
          } else {
             showError('Erro ao fechar ponto!', 'Resposta inválida do servidor.')
          }
-      } catch (error: any) {
-         showError('Erro ao fechar ponto!', error.message || 'Erro ao processar fechamento de ponto.')
+      } catch (error) {
+         console.error('Erro ao fechar ponto:', error)
+         showError('Erro ao fechar ponto!', 'Erro ao processar fechamento de ponto.')
       } finally {
          setProcessandoFechamento(null)
       }

@@ -34,7 +34,7 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       }
    }
 
-   const [user, setUser] = useState<User | null>(getUserData())
+   const [user] = useState<User | null>(getUserData())
 
    const getActiveItemFromPath = (path: string) => {
       if (path === '/' || path === '/ponto') {

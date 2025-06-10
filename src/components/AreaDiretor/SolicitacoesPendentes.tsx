@@ -7,7 +7,7 @@ import {
   AiOutlineUser,
 } from "react-icons/ai";
 import { walletService } from "../../hooks/useWallet";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import React from "react";
 import { useToast } from "../Toast/ToastProvider";
 
@@ -51,9 +51,6 @@ function SolicitacoesPendentes({ onUpdate }: SolicitacoesPendentesProps) {
   const [solicitacoes, setSolicitacoes] = useState<Solicitacao[]>([]);
   const [carregando, setCarregando] = useState(true);
   const [processando, setProcessando] = useState<number | null>(null);
-  const [filtro, setFiltro] = useState<
-    "todos" | "PENDING" | "APPROVED" | "REJECTED"
-  >("PENDING");
   const [modalRejeitar, setModalRejeitar] = useState<{
     aberto: boolean;
     id: number | null;
@@ -68,27 +65,14 @@ function SolicitacoesPendentes({ onUpdate }: SolicitacoesPendentesProps) {
     itensPorPagina: 5,
   });
 
-  useEffect(() => {
-    buscarSolicitacoes();
-  }, [filtro, paginacao.paginaAtual]);
-
-  const buscarSolicitacoes = async () => {
+  const buscarSolicitacoes = useCallback(async () => {
     try {
       setCarregando(true);
 
-      let response;
-
-      if (filtro === "PENDING" || filtro === "todos") {
-        response = await walletService.buscarTodasSolicitacoesPendentes({
-          page: paginacao.paginaAtual,
-          limit: paginacao.itensPorPagina,
-        });
-      } else {
-        response = await walletService.buscarTodasSolicitacoesPendentes({
-          page: paginacao.paginaAtual,
-          limit: paginacao.itensPorPagina,
-        });
-      }
+      const response = await walletService.buscarTodasSolicitacoesPendentes({
+        page: paginacao.paginaAtual,
+        limit: paginacao.itensPorPagina,
+      });
 
       if (response.success) {
         setSolicitacoes(response.requests || []);
@@ -109,7 +93,11 @@ function SolicitacoesPendentes({ onUpdate }: SolicitacoesPendentesProps) {
     } finally {
       setCarregando(false);
     }
-  };
+  }, [paginacao.paginaAtual, paginacao.itensPorPagina]);
+
+  useEffect(() => {
+    buscarSolicitacoes();
+  }, [buscarSolicitacoes]);
 
   const irParaPagina = (pagina: number) => {
     setPaginacao((prev) => ({ ...prev, paginaAtual: pagina }));
@@ -123,11 +111,11 @@ function SolicitacoesPendentes({ onUpdate }: SolicitacoesPendentesProps) {
 
       if (acao === 'APPROVED') {
         response = await walletService.aprovarSolicitacao(id);
-        showSuccess('Solicitação aprovada!', 'Solicitação de compra aprovada.')
+        showSuccess('Solicitação aprovada!', 'Solicitação de compra aprovada.');
         buscarSolicitacoes();
       } else {
         response = await walletService.rejeitarSolicitacao(id, motivo || 'Rejeitado pelo diretor');
-        showSuccess('Solicitação recusada!', 'Solicitação de compra recusada.')
+        showSuccess('Solicitação recusada!', 'Solicitação de compra recusada.');
         buscarSolicitacoes();
       }
 
@@ -137,14 +125,18 @@ function SolicitacoesPendentes({ onUpdate }: SolicitacoesPendentesProps) {
       } else {
         throw new Error(response.message || 'Erro ao processar solicitação');
       }
-    } catch (error: any) {
-      showError('Erro ao processar solicitação!', 'Erro no processamento da solicitação.')
+    } catch (error) {
       console.error('Erro ao processar solicitação:', error);
+
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Erro desconhecido ao processar solicitação';
+
+      showError('Erro ao processar solicitação!', errorMessage);
     } finally {
       setProcessando(null);
     }
   };
-
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -172,10 +164,7 @@ function SolicitacoesPendentes({ onUpdate }: SolicitacoesPendentesProps) {
     }
   };
 
-  const solicitacoesFiltradas =
-    filtro === "todos"
-      ? solicitacoes
-      : solicitacoes.filter((sol: { status: any }) => sol.status === filtro);
+  const solicitacoesFiltradas = solicitacoes.filter((sol: Solicitacao) => sol.status === 'PENDING');
 
   const verificarSaldoSuficiente = (solicitacao: Solicitacao) => {
     const saldoAtual = Number(solicitacao.wallet.balance);
@@ -233,7 +222,7 @@ function SolicitacoesPendentes({ onUpdate }: SolicitacoesPendentesProps) {
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-semibold text-white flex items-center">
           <AiOutlineClockCircle className="mr-2 text-yellow-500" />
-          Solicitações de Gastos
+          Solicitações Pendentes
           {paginacao.totalItens > 0 && (
             <span className="ml-2 text-sm text-gray-400">
               ({paginacao.totalItens}{" "}
@@ -315,136 +304,86 @@ function SolicitacoesPendentes({ onUpdate }: SolicitacoesPendentesProps) {
                   </div>
 
                   <div className="flex items-center space-x-4 text-sm text-gray-400">
-                    {solicitacao.status === "PENDING" ? (
-                      <>
-                        <span>
-                          Saldo atual da carteira:{" "}
-                          <span className="text-green-700">
-                            RTC$ {Number(solicitacao.wallet.balance).toFixed(2)}
-                          </span>
-                        </span>
-                        <span>→</span>
-                        {verificarSaldoSuficiente(solicitacao) ? (
-                          <span className="text-yellow-400">
-                            Saldo após aprovação: RTC${" "}
-                            {(
-                              Number(solicitacao.wallet.balance) -
-                              Number(solicitacao.amount)
-                            ).toFixed(2)}
-                          </span>
-                        ) : (
-                          <span className="text-red-400 font-medium">
-                            ⚠️ Saldo insuficiente (faltam RTC${" "}
-                            {(
-                              Number(solicitacao.amount) -
-                              Number(solicitacao.wallet.balance)
-                            ).toFixed(2)}
-                            )
-                          </span>
-                        )}
-                      </>
-                    ) : solicitacao.status === "APPROVED" ? (
-                      <>
-                        <span>
-                          Valor processado: RTC${" "}
-                          {Number(solicitacao.amount).toFixed(2)}
-                        </span>
-                        <span>•</span>
-                        <span className="text-green-400">
-                          Aprovado e debitado
-                        </span>
-                        <span>•</span>
-                        <span>
-                          Saldo atual: RTC${" "}
-                          {Number(solicitacao.wallet.balance).toFixed(2)}
-                        </span>
-                      </>
-                    ) : solicitacao.status === "REJECTED" ? (
-                      <>
-                        <span>
-                          Valor solicitado: RTC${" "}
-                          {Number(solicitacao.amount).toFixed(2)}
-                        </span>
-                        <span>•</span>
-                        <span className="text-red-400">
-                          Rejeitado - sem alteração no saldo
-                        </span>
-                        <span>•</span>
-                        <span>
-                          Saldo atual: RTC${" "}
-                          {Number(solicitacao.wallet.balance).toFixed(2)}
-                        </span>
-                      </>
+                    <span>
+                      Saldo atual da carteira:{" "}
+                      <span className="text-green-700">
+                        RTC$ {Number(solicitacao.wallet.balance).toFixed(2)}
+                      </span>
+                    </span>
+                    <span>→</span>
+                    {verificarSaldoSuficiente(solicitacao) ? (
+                      <span className="text-yellow-400">
+                        Saldo após aprovação: RTC${" "}
+                        {(
+                          Number(solicitacao.wallet.balance) -
+                          Number(solicitacao.amount)
+                        ).toFixed(2)}
+                      </span>
                     ) : (
-                      <>
-                        <span>
-                          Valor: RTC$ {Number(solicitacao.amount).toFixed(2)}
-                        </span>
-                        <span>•</span>
-                        <span>
-                          Saldo atual: RTC${" "}
-                          {Number(solicitacao.wallet.balance).toFixed(2)}
-                        </span>
-                      </>
+                      <span className="text-red-400 font-medium">
+                        ⚠️ Saldo insuficiente (faltam RTC${" "}
+                        {(
+                          Number(solicitacao.amount) -
+                          Number(solicitacao.wallet.balance)
+                        ).toFixed(2)}
+                        )
+                      </span>
                     )}
                   </div>
                 </div>
               </div>
 
-              {solicitacao.status === "PENDING" && (
-                <div className="flex items-center justify-end space-x-3 mt-4 pt-4 border-t border-gray-700">
+              {/* Botões sempre visíveis para solicitações pendentes */}
+              <div className="flex items-center justify-end space-x-3 mt-4 pt-4 border-t border-gray-700">
+                <button
+                  onClick={() => setModalRejeitar({ aberto: true, id: solicitacao.id })}
+                  disabled={processando === solicitacao.id}
+                  className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+                >
+                  {processando === solicitacao.id ? (
+                    <AiOutlineLoading3Quarters className="animate-spin" />
+                  ) : (
+                    <AiOutlineCloseCircle />
+                  )}
+                  <span>Rejeitar</span>
+                </button>
+
+                {verificarSaldoSuficiente(solicitacao) ? (
                   <button
-                    onClick={() => setModalRejeitar({ aberto: true, id: solicitacao.id })}
+                    onClick={() =>
+                      processarSolicitacao(solicitacao.id, "APPROVED")
+                    }
                     disabled={processando === solicitacao.id}
-                    className="flex items-center space-x-2 bg-red-600 hover:bg-red-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
+                    className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
                   >
                     {processando === solicitacao.id ? (
                       <AiOutlineLoading3Quarters className="animate-spin" />
                     ) : (
-                      <AiOutlineCloseCircle />
+                      <AiOutlineCheckCircle />
                     )}
-                    <span>Rejeitar</span>
+                    <span>Aprovar</span>
                   </button>
-
-                  {verificarSaldoSuficiente(solicitacao) ? (
-                    <button
-                      onClick={() =>
-                        processarSolicitacao(solicitacao.id, "APPROVED")
-                      }
-                      disabled={processando === solicitacao.id}
-                      className="flex items-center space-x-2 bg-green-600 hover:bg-green-700 disabled:bg-gray-600 text-white px-4 py-2 rounded-lg transition-colors"
-                    >
-                      {processando === solicitacao.id ? (
-                        <AiOutlineLoading3Quarters className="animate-spin" />
-                      ) : (
-                        <AiOutlineCheckCircle />
-                      )}
-                      <span>Aprovar</span>
-                    </button>
-                  ) : (
-                    <button
-                      disabled
-                      className="flex items-center space-x-2 bg-gray-600 text-gray-400 px-4 py-2 rounded-lg cursor-not-allowed"
-                      title="Saldo insuficiente para aprovação"
-                    >
-                      <AiOutlineCloseCircle />
-                      <span>Saldo Insuficiente</span>
-                    </button>
-                  )}
-                </div>
-              )}
+                ) : (
+                  <button
+                    disabled
+                    className="flex items-center space-x-2 bg-gray-600 text-gray-400 px-4 py-2 rounded-lg cursor-not-allowed"
+                    title="Saldo insuficiente para aprovação"
+                  >
+                    <AiOutlineCloseCircle />
+                    <span>Saldo Insuficiente</span>
+                  </button>
+                )}
+              </div>
             </div>
           ))
         ) : (
           <div className="text-center py-12">
             <AiOutlineClockCircle className="mx-auto text-4xl text-gray-500 mb-4" />
             <h3 className="text-gray-400 text-lg mb-2">
-              Nenhuma solicitação encontrada
+              Nenhuma solicitação pendente
             </h3>
             <p className="text-gray-500">
-              {filtro === "PENDING"
-                ? "Não há solicitações pendentes no momento"
-                : `Não há solicitações com status "${getStatusText(filtro)}"`}
+              Não há solicitações aguardando aprovação no momento
             </p>
           </div>
         )}

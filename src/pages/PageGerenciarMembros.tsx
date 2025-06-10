@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import {
    AiOutlineSearch,
    AiOutlineCalendar,
@@ -44,6 +44,17 @@ interface PontoMembro {
    updatedAt: string
 }
 
+// ✅ CORRIGIR: Interface específica para membros em vez de usar 'any'
+interface Membro {
+   id: string
+   name: string
+   email: string
+   role: string
+   isActive: boolean
+   created_at: string
+   updated_at: string
+}
+
 function GerenciarMembros() {
    const [pontos, setPontos] = useState<PontoMembro[]>([])
    const [loading, setLoading] = useState(true)
@@ -51,7 +62,8 @@ function GerenciarMembros() {
    const [processando, setProcessando] = useState<string | null>(null)
    const navigate = useNavigate()
 
-   const [membros, setMembros] = useState<any[]>([])
+   // ✅ CORRIGIR: Remover 'any' e usar interface específica
+   const [membros, setMembros] = useState<Membro[]>([])
    const [loadingMembros, setLoadingMembros] = useState(false)
    const [erroMembros, setErroMembros] = useState('')
    const [filtroMembros, setFiltroMembros] = useState('')
@@ -84,16 +96,8 @@ function GerenciarMembros() {
       aprovados: 0
    })
 
-   useEffect(() => {
-      if (activeTab === 'pontos') {
-         buscarPontos()
-      } else if (activeTab === 'membros') {
-         buscarMembros()
-      }
-      buscarEstatisticas()
-   }, [paginacao.page, filtros, activeTab])
-
-   const buscarPontos = async () => {
+   // ✅ CORRIGIR: Usar useCallback para evitar warning de dependência
+   const buscarPontos = useCallback(async () => {
       try {
          setLoading(true)
          setErro('')
@@ -114,14 +118,21 @@ function GerenciarMembros() {
                totalPages: response.pagination.totalPages
             }))
          }
-      } catch (error: any) {
-         setErro(error.message)
+      } catch (error) { // ✅ CORRIGIR: Remover 'any'
+         console.error('Erro ao buscar pontos:', error)
+
+         // ✅ TRATAMENTO adequado do erro
+         const errorMessage = error instanceof Error
+            ? error.message
+            : 'Erro ao buscar pontos dos membros'
+
+         setErro(errorMessage)
       } finally {
          setLoading(false)
       }
-   }
+   }, [paginacao.page, paginacao.limit, filtros.name, filtros.date, filtros.status])
 
-   const buscarMembros = async () => {
+   const buscarMembros = useCallback(async () => {
       try {
          setLoadingMembros(true)
          setErroMembros('')
@@ -131,12 +142,29 @@ function GerenciarMembros() {
          if (response.success && response.data) {
             setMembros(response.data)
          }
-      } catch (error: any) {
-         setErroMembros(error.message || 'Erro ao buscar membros')
+      } catch (error) { // ✅ CORRIGIR: Remover 'any'
+         console.error('Erro ao buscar membros:', error)
+
+         // ✅ TRATAMENTO adequado do erro
+         const errorMessage = error instanceof Error
+            ? error.message
+            : 'Erro ao buscar membros'
+
+         setErroMembros(errorMessage)
       } finally {
          setLoadingMembros(false)
       }
-   }
+   }, [])
+
+   // ✅ CORRIGIR: Adicionar dependência no useEffect
+   useEffect(() => {
+      if (activeTab === 'pontos') {
+         buscarPontos()
+      } else if (activeTab === 'membros') {
+         buscarMembros()
+      }
+      buscarEstatisticas()
+   }, [paginacao.page, filtros, activeTab, buscarPontos, buscarMembros])
 
    const buscarEstatisticas = async () => {
       try {
@@ -186,8 +214,15 @@ function GerenciarMembros() {
          await pontoService.aprovarPonto(pontoId)
          await buscarPontos()
          await buscarEstatisticas()
-      } catch (error: any) {
-         setErro(error.message)
+      } catch (error) { // ✅ CORRIGIR: Remover 'any'
+         console.error('Erro ao aprovar ponto:', error)
+
+         // ✅ TRATAMENTO adequado do erro
+         const errorMessage = error instanceof Error
+            ? error.message
+            : 'Erro ao aprovar ponto'
+
+         setErro(errorMessage)
       } finally {
          setProcessando(null)
       }
@@ -203,8 +238,15 @@ function GerenciarMembros() {
          await pontoService.rejeitarPonto(pontoId)
          await buscarPontos()
          await buscarEstatisticas()
-      } catch (error: any) {
-         setErro(error.message)
+      } catch (error) { // ✅ CORRIGIR: Remover 'any'
+         console.error('Erro ao rejeitar ponto:', error)
+
+         // ✅ TRATAMENTO adequado do erro
+         const errorMessage = error instanceof Error
+            ? error.message
+            : 'Erro ao rejeitar ponto'
+
+         setErro(errorMessage)
       } finally {
          setProcessando(null)
       }

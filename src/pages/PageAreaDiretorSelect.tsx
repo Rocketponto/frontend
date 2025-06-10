@@ -1,21 +1,39 @@
 import { useEffect, useState } from 'react'
-import { AiOutlineBarChart, AiOutlineClockCircle, AiOutlineDollar, AiOutlineFileText, AiOutlineTeam } from 'react-icons/ai'
+import { AiOutlineBarChart, AiOutlineClockCircle, AiOutlineFileText, AiOutlineTeam } from 'react-icons/ai'
 import CardDiretor from '../components/AreaDiretor/CardAreaDiretor'
 import { useNavigate } from 'react-router-dom'
 import { authService } from '../hooks/useAuth'
 import { pontoService } from '../hooks/usePointRecord'
 import { FaCoins } from 'react-icons/fa'
 
+interface PontoMembro {
+   id: string
+   userId: string
+   user: {
+      id: string
+      name: string
+      email: string
+      role: string
+   }
+   entryDateHour: string | null
+   exitDateHour: string | null
+   pointRecordStatus: 'APPROVED' | 'IN_PROGRESS' | 'REJECTED' | 'PENDING'
+   description: string
+   workingHours: {
+      hours: number
+      minutes: number
+      totalHours: number
+   }
+   createdAt: string
+   updatedAt: string
+}
+
 function AreaDiretorSelect() {
-   const [selectedOption, setSelectedOption] = useState<string | null>(null)
    const [membersActive, setMembersActive] = useState(0)
-   const [Loading, setLoading] = useState(false)
    const [pointsInProgress, setPointsProgress] = useState(0)
    const navigate = useNavigate()
 
    const handleCardClick = (option: string) => {
-      setSelectedOption(option)
-
       if (option === 'membros') {
          navigate('/area-diretor/gerenciar-membros')
       } else if (option === 'rocketcoins') {
@@ -25,8 +43,12 @@ function AreaDiretorSelect() {
 
    useEffect(() => {
       const fetchMembers = async () => {
-         const response = await authService.buscarMembrosAtivo()
-         setMembersActive(response.data.length)
+         try {
+            const response = await authService.buscarMembrosAtivo()
+            setMembersActive(response.data.length)
+         } catch (error) {
+            console.error('Erro ao buscar membros ativos:', error)
+         }
       }
       fetchMembers()
    }, [])
@@ -34,11 +56,10 @@ function AreaDiretorSelect() {
    useEffect(() => {
       const fetchPointsInProgress = async () => {
          try {
-            setLoading(true)
             const response = await pontoService.buscarPontosMembros({})
 
             if (response.success && response.data) {
-               const pontosEmProgresso = response.data.filter((ponto: any) => {
+               const pontosEmProgresso = response.data.filter((ponto: PontoMembro) => {
                   return ponto.pointRecordStatus === 'IN_PROGRESS'
                })
 
@@ -46,8 +67,6 @@ function AreaDiretorSelect() {
             }
          } catch (error) {
             console.error('Erro ao buscar pontos:', error)
-         } finally {
-            setLoading(false)
          }
       }
 

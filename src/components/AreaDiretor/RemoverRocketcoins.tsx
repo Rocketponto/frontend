@@ -20,6 +20,14 @@ interface Usuario {
   balance?: number;
 }
 
+// ✅ ADICIONAR: Interface para resposta da API
+interface MembroResponse {
+  id: string | number;
+  name: string;
+  email: string;
+  balance?: number;
+}
+
 interface RemoverRocketcoinsProps {
   onUpdate: () => void;
 }
@@ -58,7 +66,8 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
 
       if (response.data) {
         setUsuarios(
-          response.data.map((membro: any) => ({
+          // ✅ CORRIGIR: Tipar adequadamente removendo 'any'
+          response.data.map((membro: MembroResponse) => ({
             id: Number(membro.id),
             name: membro.name,
             email: membro.email,
@@ -136,9 +145,16 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
       } else {
         throw new Error(response.message || "Erro ao remover rocketcoins");
       }
-    } catch (error: any) {
+    } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      console.error("Erro ao remover rocketcoins:", error);
+
+      // ✅ TRATAMENTO adequado do erro
+      const errorMessage = error instanceof Error
+        ? error.message
+        : "Erro ao processar solicitação";
+
       showError('Erro ao remover RTC$', 'Erro no processamento.')
-      setErro(error.message || "Erro ao processar solicitação");
+      setErro(errorMessage);
     } finally {
       setSalvando(false);
     }
@@ -358,7 +374,7 @@ function RemoverRocketcoins({ onUpdate }: RemoverRocketcoinsProps) {
           </h4>
           <div className="text-white">
             <span className="font-bold">
-              +RTC${" "}
+              -RTC${" "}
               {(Number(valor || 0) / 100).toLocaleString("pt-BR", {
                 minimumFractionDigits: 2,
                 maximumFractionDigits: 2,

@@ -37,8 +37,8 @@ function CardCoin({
       } else {
         throw new Error(response.message || 'Erro ao carregar saldo')
       }
-    } catch (error: any) {
-      console.error('Erro ao buscar saldo:', error)
+    } catch (error) {
+      console.error(error)
       setErro('Erro ao carregar saldo')
       setSaldo(0)
     } finally {

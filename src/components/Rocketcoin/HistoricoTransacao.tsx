@@ -20,7 +20,6 @@ function HistoricoTransacoes() {
   const [totalSaida, setTotalSaida] = useState(0)
   const [totalEntrada, setTotalEntrada] = useState(0)
   const [carregando, setCarregando] = useState(false)
-  const [erro, setErro] = useState('')
   const [filtroTipo, setFiltroTipo] = useState<'todos' | 'entrada' | 'saida'>('todos')
   const [paginacao, setPaginacao] = useState({
     paginaAtual: 1,
@@ -40,7 +39,10 @@ function HistoricoTransacoes() {
       });
 
       if (response.success) {
-        const transacoes = response.transactions
+        const transacoes = response.transactions.map((transaction) => ({
+          ...transaction,
+          type: transaction.type === 'EARNED' ? 'CREDIT' : transaction.type === 'SPENT' ? 'DEBIT' : transaction.type,
+        }));
         setTransacoes(transacoes)
 
         const totalSaida = response.wallet.totalSpent
@@ -58,8 +60,14 @@ function HistoricoTransacoes() {
           })
         }
       }
-    } catch (error: any) {
-      setErro(error.message || 'Erro ao buscar solicitações de transação.')
+    } catch (error) {
+      console.error('Erro ao buscar histórico de transações:', error)
+
+      const errorMessage = error instanceof Error
+        ? error.message
+        : 'Erro ao buscar solicitações de transação.'
+
+      console.error('Detalhes do erro:', errorMessage)
       setCarregando(false)
     } finally {
       setCarregando(false)
@@ -102,7 +110,7 @@ function HistoricoTransacoes() {
           <AiOutlineFilter className="text-gray-400" />
           <select
             value={filtroTipo}
-            onChange={(e) => setFiltroTipo(e.target.value as any)}
+            onChange={(e) => setFiltroTipo(e.target.value as 'todos' | 'entrada' | 'saida')}
             className="bg-gray-800 text-white text-sm rounded px-2 py-1 border border-gray-600"
           >
             <option value="todos">Todos</option>
@@ -205,7 +213,7 @@ function HistoricoTransacoes() {
                     } else {
                       const meio = Math.floor(5 / 2);
                       let inicio = Math.max(1, paginacao.paginaAtual - meio);
-                      let fim = Math.min(paginacao.totalPaginas, inicio + 4);
+                      const fim = Math.min(paginacao.totalPaginas, inicio + 4);
 
                       if (fim - inicio < 4) {
                         inicio = Math.max(1, fim - 4);

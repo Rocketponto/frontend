@@ -19,6 +19,13 @@ interface Usuario {
   balance?: number;
 }
 
+interface MembroResponse {
+  id: string | number;
+  name: string;
+  email: string;
+  balance?: number;
+}
+
 interface AdicionarRocketcoinsProps {
   onUpdate: () => void;
 }
@@ -48,7 +55,8 @@ function AdicionarRocketcoins({ onUpdate }: AdicionarRocketcoinsProps) {
 
       if (response.data) {
         setUsuarios(
-          response.data.map((membro: any) => ({
+          // ✅ CORRIGIR: Tipar o membro corretamente
+          response.data.map((membro: MembroResponse) => ({
             id: Number(membro.id),
             name: membro.name,
             email: membro.email,
@@ -102,7 +110,8 @@ function AdicionarRocketcoins({ onUpdate }: AdicionarRocketcoinsProps) {
       } else {
         throw new Error(response.message || "Erro ao adicionar rocketcoins");
       }
-    } catch (error: any) {
+    } catch (error) { // ✅ CORRIGIR: Remover any e unused variable
+      console.error("Erro ao adicionar rocketcoins:", error);
       showError('Erro ao adicionar RTC', 'Erro no processamento!')
     } finally {
       setSalvando(false);
