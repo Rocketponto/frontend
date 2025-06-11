@@ -3,6 +3,7 @@ import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineUser, AiOutlineLock, AiOu
 import { useNavigate } from 'react-router-dom'
 import { authService } from '../../hooks/useAuth'
 import { useToast } from '../Toast/ToastProvider'
+import logoRocket from '../../assets/logo-rocket.svg'
 
 function Login() {
    const [formData, setFormData] = useState({
@@ -102,7 +103,7 @@ function Login() {
                <div className="text-center mb-8">
                   <div className="flex justify-center items-center mb-4">
                      <div className="relative">
-                        <img src="src/assets/logo-rocket.svg" />
+                        <img src={logoRocket} alt="Logo da RocketJr" />
                         <div className="absolute -top-2 -right-3 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                      </div>
                   </div>
