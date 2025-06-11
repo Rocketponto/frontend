@@ -210,9 +210,11 @@ function MembrosTable({
                                  </span>
                               </td>
                               <td className="py-4 px-4 max-w-xs">
-                                 <span className="text-gray-300 text-sm truncate block" title={ponto.description}>
-                                    {ponto.description || 'Sem descrição'}
-                                 </span>
+                                 <div className="overflow-x-auto">
+                                    <span className="text-gray-300 text-sm whitespace-nowrap" title={ponto.description}>
+                                       {ponto.description || 'Sem descrição'}
+                                    </span>
+                                 </div>
                               </td>
                               {pontos.some(p => p.pointRecordStatus === 'IN_PROGRESS') && (
                                  <td className="py-4 px-4 max-w-xs">

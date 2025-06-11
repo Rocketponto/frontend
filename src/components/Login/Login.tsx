@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineUser, AiOutlineLock, AiOutlineRocket, AiFillRocket } from 'react-icons/ai'
+import { AiOutlineEye, AiOutlineEyeInvisible, AiOutlineUser, AiOutlineLock, AiOutlineRocket } from 'react-icons/ai'
 import { useNavigate } from 'react-router-dom'
 import { authService } from '../../hooks/useAuth'
 import { useToast } from '../Toast/ToastProvider'
@@ -102,8 +102,8 @@ function Login() {
                <div className="text-center mb-8">
                   <div className="flex justify-center items-center mb-4">
                      <div className="relative">
-                        <AiFillRocket className="text-5xl text-rocket-red-600 drop-shadow-lg" />
-                        <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                        <img src="src/assets/logo-rocket.svg" />
+                        <div className="absolute -top-2 -right-3 w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
                      </div>
                   </div>
                   <h1 className="text-3xl font-bold text-white mb-2">
@@ -180,9 +180,11 @@ function Login() {
                         />
                         Lembrar-me
                      </label>
+                     {/*
                      <a href="#" className="text-white hover:text-rocket-red-600 transition-colors">
                         Esqueci a senha
                      </a>
+                     */}
                   </div>
 
                   {/* Botão de login */}
@@ -204,16 +206,6 @@ function Login() {
                      )}
                   </button>
                </form>
-
-               {/* Rodapé */}
-               <div className="mt-8 text-center">
-                  <p className="text-gray-400 text-sm">
-                     Não tem uma conta?{' '}
-                     <a href="#" className="text-rocket-red-400 hover:text-rocket-red-300 transition-colors font-medium">
-                        Fale com o RH
-                     </a>
-                  </p>
-               </div>
             </div>
 
             {/* Indicador de versão */}
