@@ -173,7 +173,7 @@ export const pontoService = {
 
          const response = await api.get(endpoint)
          return response.data
-      } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      } catch (error) {
          console.error('Erro ao buscar histórico de pontos:', error)
 
          // ✅ TRATAMENTO adequado do erro
@@ -214,6 +214,7 @@ export const pontoService = {
          if (filtros.status) params.append('status', filtros.status)
 
          const response = await api.get(`/pointRecord/all?${params.toString()}`)
+         console.log("response ", response.data)
          return response.data
       } catch (error) {
          console.error('Erro ao buscar pontos dos membros:', error)

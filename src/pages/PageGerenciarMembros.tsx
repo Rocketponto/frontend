@@ -166,24 +166,27 @@ function GerenciarMembros() {
    const buscarEstatisticas = async () => {
       try {
          const hoje = new Date().toISOString().split('T')[0]
-         const responsePontosHoje = await pontoService.buscarPontosMembros({ date: hoje })
-         const responseTotalMembros = await authService.buscarMembrosAtivo()
 
-         const hojeString = hoje.toString().split('T')[0]
-
-         const pontosHoje = responsePontosHoje.data.filter(ponto => {
-            const dataPonto = new Date(ponto.createdAt).toISOString().split('T')[0]
-            return dataPonto === hojeString
+         const responseTodosPontos = await pontoService.buscarPontosMembros({
+            page: 1,
+            limit: 1000
          })
 
-         const totalPontos = pontosHoje.length
-         const pendentes = responsePontosHoje.data.filter(p => p.pointRecordStatus === 'IN_PROGRESS').length
-         const aprovados = responsePontosHoje.data.filter(p => p.pointRecordStatus === 'APPROVED').length
-         const totalMembros = responseTotalMembros.data.length
+         const responseTotalMembros = await authService.buscarMembrosAtivo()
+
+         const pontosHoje = responseTodosPontos.data.filter(ponto => {
+            const dataPonto = new Date(ponto.createdAt).toISOString().split('T')[0]
+            return dataPonto === hoje
+         })
+
+         const totalPontosHoje = pontosHoje.length
+         const pendentes = responseTodosPontos.data.filter(p => p.pointRecordStatus === 'IN_PROGRESS').length
+         const aprovados = responseTodosPontos.data.filter(p => p.pointRecordStatus === 'APPROVED').length
+         const totalMembros = responseTotalMembros.data?.length || 0
 
          setStats({
-            totalMembros: totalMembros,
-            pontosHoje: totalPontos,
+            totalMembros,
+            pontosHoje: totalPontosHoje,
             pendentes,
             aprovados
          })
@@ -424,7 +427,7 @@ function GerenciarMembros() {
                         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                            <div>
                               <label className="block text-gray-300 text-sm font-medium mb-2">
-                                 Nome do funcionário
+                                 Nome do membro
                               </label>
                               <div className="relative">
                                  <AiOutlineSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -446,9 +449,10 @@ function GerenciarMembros() {
                                  <AiOutlineCalendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                                  <input
                                     type="date"
-                                    value={filtros.date}
+                                    value={filtros.date || ''}
                                     onChange={(e) => handleFiltroChange('date', e.target.value)}
                                     className="w-full bg-gray-700 text-white rounded-lg pl-10 pr-4 py-2 border border-gray-600 focus:border-rocket-red-500 focus:ring-2 focus:ring-rocket-red-500/20 focus:outline-none"
+                                    autoComplete='off'
                                  />
                               </div>
                            </div>

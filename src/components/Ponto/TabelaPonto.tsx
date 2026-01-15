@@ -25,7 +25,7 @@ function TabelaPonto() {
       itensPorPagina: 10
    })
 
-   // ✅ CORRIGIR: Remover estado não usado ou implementar sua funcionalidade
+   // CORRIGIR: Remover estado não usado ou implementar sua funcionalidade
    // Se não for usar o resumo, remova completamente
    // Se for usar, adicione onde necessário na UI
    // const [resumo, setResumo] = useState({
@@ -34,7 +34,6 @@ function TabelaPonto() {
    //    recordsApproved: 0
    // })
 
-   // ✅ CORRIGIR: useCallback para evitar warning de dependência
    const buscarHistorico = useCallback(async () => {
       try {
          setLoading(true)
