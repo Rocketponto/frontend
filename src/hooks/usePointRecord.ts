@@ -215,10 +215,9 @@ export const pontoService = {
 
          const response = await api.get(`/pointRecord/all?${params.toString()}`)
          return response.data
-      } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      } catch (error) {
          console.error('Erro ao buscar pontos dos membros:', error)
 
-         // ✅ TRATAMENTO adequado do erro
          if (error instanceof AxiosError && error.response) {
             const errorData = error.response.data as ApiErrorResponse
             throw new Error(errorData.message || 'Erro ao buscar pontos')

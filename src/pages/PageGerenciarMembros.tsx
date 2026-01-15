@@ -96,7 +96,6 @@ function GerenciarMembros() {
       aprovados: 0
    })
 
-   // ✅ CORRIGIR: Usar useCallback para evitar warning de dependência
    const buscarPontos = useCallback(async () => {
       try {
          setLoading(true)
@@ -118,10 +117,9 @@ function GerenciarMembros() {
                totalPages: response.pagination.totalPages
             }))
          }
-      } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      } catch (error) {
          console.error('Erro ao buscar pontos:', error)
 
-         // ✅ TRATAMENTO adequado do erro
          const errorMessage = error instanceof Error
             ? error.message
             : 'Erro ao buscar pontos dos membros'
@@ -142,7 +140,7 @@ function GerenciarMembros() {
          if (response.success && response.data) {
             setMembros(response.data)
          }
-      } catch (error) { // ✅ CORRIGIR: Remover 'any'
+      } catch (error) {
          console.error('Erro ao buscar membros:', error)
 
          // ✅ TRATAMENTO adequado do erro
@@ -156,7 +154,6 @@ function GerenciarMembros() {
       }
    }, [])
 
-   // ✅ CORRIGIR: Adicionar dependência no useEffect
    useEffect(() => {
       if (activeTab === 'pontos') {
          buscarPontos()
@@ -558,11 +555,10 @@ function GerenciarMembros() {
                                        </p>
 
                                        <div className="flex items-center space-x-2 mb-3">
-                                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs border ${
-                                             membro.role === 'DIRETOR'
-                                                ? 'bg-purple-500/10 text-purple-400 border-purple-500/30'
-                                                : 'bg-blue-500/10 text-blue-400 border-blue-500/30'
-                                          }`}>
+                                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs border ${membro.role === 'DIRETOR'
+                                             ? 'bg-purple-500/10 text-purple-400 border-purple-500/30'
+                                             : 'bg-blue-500/10 text-blue-400 border-blue-500/30'
+                                             }`}>
                                              {membro.role === 'DIRETOR' ? (
                                                 <AiOutlineCrown className="w-3 h-3 mr-1" />
                                              ) : (
@@ -571,14 +567,12 @@ function GerenciarMembros() {
                                              {membro.role}
                                           </span>
 
-                                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs border ${
-                                             membro.isActive
-                                                ? 'bg-green-500/10 text-green-400 border-green-500/30'
-                                                : 'bg-red-500/10 text-red-400 border-red-500/30'
-                                          }`}>
-                                             <div className={`w-2 h-2 rounded-full mr-1 ${
-                                                membro.isActive ? 'bg-green-400' : 'bg-red-400'
-                                             }`}></div>
+                                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs border ${membro.isActive
+                                             ? 'bg-green-500/10 text-green-400 border-green-500/30'
+                                             : 'bg-red-500/10 text-red-400 border-red-500/30'
+                                             }`}>
+                                             <div className={`w-2 h-2 rounded-full mr-1 ${membro.isActive ? 'bg-green-400' : 'bg-red-400'
+                                                }`}></div>
                                              {membro.isActive ? 'Ativo' : 'Inativo'}
                                           </span>
                                        </div>
