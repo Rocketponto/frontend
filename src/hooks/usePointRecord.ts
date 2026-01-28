@@ -262,5 +262,28 @@ export const pontoService = {
 
          throw new Error('Erro de conexão. Tente novamente.')
       }
+   },
+
+   // Registrar ponto manual (apenas DIRETOR)
+   registrarPontoManual: async (data: {
+      directorId: string
+      userId: string
+      entryDateHour: string
+      exitDateHour: string
+      description: string
+   }): Promise<{ success: boolean; message: string; data?: PontoMembro }> => {
+      try {
+         const response = await api.post('/pointRecord/manual', data)
+         return response.data
+      } catch (error) {
+         console.error('Erro ao registrar ponto manual:', error)
+
+         if (error instanceof AxiosError && error.response) {
+            const errorData = error.response.data as ApiErrorResponse
+            throw new Error(errorData.message || 'Erro ao registrar ponto manual')
+         }
+
+         throw new Error('Erro de conexão. Tente novamente.')
+      }
    }
 }

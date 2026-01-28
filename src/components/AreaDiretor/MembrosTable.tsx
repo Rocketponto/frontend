@@ -4,9 +4,11 @@ import {
    AiOutlineLeft,
    AiOutlineRight
 } from 'react-icons/ai'
+import { MdMoreTime } from "react-icons/md";
 import { pontoService } from '../../hooks/usePointRecord'
 import { useToast } from '../Toast/ToastProvider'
 import { useState } from 'react'
+import ModalRegistrarPontoManual from './ModalRegistrarPontoManual'
 
 interface PontoMembro {
    id: string
@@ -63,6 +65,7 @@ function MembrosTable({
    }
    const { showSuccess, showError } = useToast()
    const [processandoFechamento, setProcessandoFechamento] = useState<string | null>(null)
+   const [modalPontoManual, setModalPontoManual] = useState(false)
 
    const formatarHora = (data: string) => {
       return new Date(data).toLocaleTimeString('pt-BR', {
@@ -127,10 +130,18 @@ function MembrosTable({
 
    return (
       <div className="bg-transparent border border-zinc-950 rounded-lg overflow-hidden">
-         <div className="p-6 border-b border-gray-700">
+         <div className="flex justify-between items-center p-6 border-b border-gray-700">
             <h3 className="text-lg font-semibold text-white">
                Resumo dos Registros de Ponto
             </h3>
+            <button
+               onClick={() => setModalPontoManual(true)}
+               className="flex items-center justify-center sm:justify-start space-x-2 bg-rocket-red-600 text-white px-4 py-2 rounded-lg font-medium transition-all duration-200 transform hover:scale-105 shadow-lg text-sm sm:text-base"
+               title="Registrar ponto manual"
+            >
+               <MdMoreTime />
+               <span className="hidden sm:inline">Registrar Ponto Manual</span>
+            </button>
          </div>
 
          {erro && (
@@ -271,6 +282,13 @@ function MembrosTable({
                </div>
             </>
          )}
+
+         {/* Modal Registrar Ponto Manual */}
+         <ModalRegistrarPontoManual
+            isOpen={modalPontoManual}
+            onClose={() => setModalPontoManual(false)}
+            onSuccess={onRecarregarTabela}
+         />
       </div>
    )
 }

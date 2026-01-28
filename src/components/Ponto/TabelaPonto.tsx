@@ -49,7 +49,8 @@ function TabelaPonto() {
 
          if (response.success && response.data) {
             const registrosFormatados = response.data.map(ponto => {
-               const data = new Date(ponto.createdAt).toLocaleDateString('pt-BR')
+               const [ano, mes, dia] = ponto.entryDateHour ? ponto.entryDateHour.split('T')[0].split('-') : '';
+               const data = `${dia}/${mes}/${ano}`;
 
                const entrada = ponto.entryDateHour
                   ? new Date(ponto.entryDateHour).toLocaleTimeString('pt-BR', {

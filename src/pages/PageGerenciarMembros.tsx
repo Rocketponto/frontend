@@ -417,7 +417,7 @@ function GerenciarMembros() {
                            </h3>
                            <button
                               onClick={limparFiltros}
-                              className="flex items-center space-x-2 bg-rocket-red-600 hover:bg-rocket-red-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
+                              className="flex items-center space-x-2 bg-rocket-red-600 px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 transform hover:scale-105 active:scale-95 shadow-lg hover:shadow-xl"
                            >
                               <AiOutlineClose className="w-4 h-4" />
                               <span>Limpar filtros</span>
