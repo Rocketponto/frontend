@@ -1,0 +1,8 @@
+# Configuração LOCAL (carregado automaticamente com "docker compose up")
+services:
+  frontend:
+    build:
+      args:
+        VITE_API_URL: http://localhost:3002
+    ports:
+      - "4000:80"

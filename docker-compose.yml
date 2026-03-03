@@ -1,0 +1,7 @@
+# Configuração BASE (comum a dev e prod)
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped

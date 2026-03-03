@@ -1,0 +1,9 @@
+# Configuração PRODUÇÃO (usar com "docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d")
+# Esse daqui já aponta autamaticamente para o VITE_API_URL do .env.production
+services:
+  frontend:
+    build:
+      args:
+        VITE_API_URL: https://api.rocketponto.com.br
+    ports:
+      - "80:80"

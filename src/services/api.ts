@@ -1,9 +1,8 @@
 import axios from 'axios'
-const local = 'http://localhost:3002'
-//const prod = 'https://api.rocketponto.space'
+const baseUrl = import.meta.env.VITE_API_URL
 
 const api = axios.create({
-  baseURL:  prod,
+  baseURL: baseUrl,
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
