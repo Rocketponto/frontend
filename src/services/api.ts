@@ -1,6 +1,6 @@
 import axios from 'axios'
-//const local = 'http://localhost:3002'
-const prod = 'https://api.rocketponto.space'
+const local = 'http://localhost:3002'
+//const prod = 'https://api.rocketponto.space'
 
 const api = axios.create({
   baseURL:  prod,
